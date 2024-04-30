@@ -4,7 +4,7 @@ using WebApi.Repositories;
 using WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(5000); });
+builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(5384); });
 // add services to DI container
 {
     var services = builder.Services;

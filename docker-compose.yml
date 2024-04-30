@@ -6,12 +6,12 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '5384:5000'
+      - '5384:5384'
     volumes:
       - ./bookdata:/app/bookdata
     # network_mode: host
     environment:
-      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_URLS=http://+:5384
     networks:
       - alexandria_network
 networks:
