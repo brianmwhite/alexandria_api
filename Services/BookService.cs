@@ -1,10 +1,10 @@
-namespace WebApi.Services;
+namespace alexandria.api.Services;
 
 using AutoMapper;
 using BCrypt.Net;
-using WebApi.Entities;
-using WebApi.Helpers;
-using WebApi.Repositories;
+using alexandria.api.Entities;
+using alexandria.api.Helpers;
+using alexandria.api.Repositories;
 
 public interface IBookService
 {

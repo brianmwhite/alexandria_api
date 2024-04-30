@@ -1,4 +1,4 @@
-namespace WebApi.Helpers;
+namespace alexandria.api.Helpers;
 
 using System.Data;
 using Dapper;
@@ -15,6 +15,6 @@ public class DataContext
 
     public IDbConnection CreateConnection()
     {
-        return new SqliteConnection(Configuration.GetConnectionString("WebApiDatabase"));
+        return new SqliteConnection(Configuration.GetConnectionString("BookDatabase"));
     }
 }

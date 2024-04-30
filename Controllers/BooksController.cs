@@ -1,7 +1,7 @@
-﻿namespace WebApi.Controllers;
+﻿namespace alexandria.api.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
-using WebApi.Services;
+using alexandria.api.Services;
 
 [ApiController]
 [Route("[controller]")]

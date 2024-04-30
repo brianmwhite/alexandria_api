@@ -15,4 +15,4 @@ COPY --from=build-env /app/out ./
 
 EXPOSE 5384
 
-ENTRYPOINT ["dotnet", "WebApi.dll"]
+ENTRYPOINT ["dotnet", "alexandria.api.dll"]

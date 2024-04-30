@@ -1,4 +1,4 @@
-namespace WebApi.Helpers;
+namespace alexandria.api.Helpers;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

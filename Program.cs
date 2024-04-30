@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using WebApi.Helpers;
-using WebApi.Repositories;
-using WebApi.Services;
+using alexandria.api.Helpers;
+using alexandria.api.Repositories;
+using alexandria.api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(5384); });

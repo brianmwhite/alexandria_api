@@ -1,8 +1,8 @@
-namespace WebApi.Repositories;
+namespace alexandria.api.Repositories;
 
 using Dapper;
-using WebApi.Entities;
-using WebApi.Helpers;
+using alexandria.api.Entities;
+using alexandria.api.Helpers;
 
 public interface IBookRepository
 {

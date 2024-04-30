@@ -1,4 +1,4 @@
-namespace WebApi.Entities;
+namespace alexandria.api.Entities;
 
 using System.Text.Json.Serialization;
 
