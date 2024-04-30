@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-SERVICENAME="alexandria-api"
+SERVICENAME="alexandria_api"
 
 git fetch
 

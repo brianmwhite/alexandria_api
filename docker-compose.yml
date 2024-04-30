@@ -1,7 +1,7 @@
 version: '3.4'
 services:
   api:
-    image: webapi:latest
+    image: alexandria_api:latest
     build:
       context: .
       dockerfile: Dockerfile
