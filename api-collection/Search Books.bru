@@ -1,0 +1,19 @@
+meta {
+  name: Search Books
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/Books?search={{query}}
+  body: none
+  auth: none
+}
+
+query {
+  search: {{query}}
+}
+
+vars:pre-request {
+  query: Cradle
+}

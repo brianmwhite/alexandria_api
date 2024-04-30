@@ -1,0 +1,15 @@
+meta {
+  name: Get Book By Id
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/Books/{{BookId}}
+  body: none
+  auth: none
+}
+
+vars:pre-request {
+  BookId: 1573
+}

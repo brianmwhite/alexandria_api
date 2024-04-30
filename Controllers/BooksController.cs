@@ -15,10 +15,18 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> Search([FromQuery] string? search)
     {
-        var books = await _bookService.GetAll();
-        return Ok(books);
+        if (string.IsNullOrEmpty(search))
+        {
+            var books = await _bookService.GetAll();
+            return Ok(books);
+        }
+        else
+        {
+            var books = await _bookService.Search(search);
+            return Ok(books);
+        }
     }
 
     [HttpGet("{id}")]
@@ -27,5 +35,4 @@ public class BooksController : ControllerBase
         var book = await _bookService.GetById(id);
         return Ok(book);
     }
-
 }

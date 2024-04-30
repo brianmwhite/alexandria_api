@@ -10,6 +10,7 @@ public interface IBookService
 {
     Task<IEnumerable<Book>> GetAll();
     Task<Book> GetById(int id);
+    Task<IEnumerable<Book>> Search(string query);
 }
 
 public class BookService : IBookService
@@ -38,6 +39,11 @@ public class BookService : IBookService
             throw new KeyNotFoundException("Book not found");
 
         return book;
+    }
+
+    public async Task<IEnumerable<Book>> Search(string query)
+    {
+        return await _bookRepository.Search(query);
     }
 
 }
