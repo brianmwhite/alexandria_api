@@ -1,0 +1,18 @@
+version: '3.4'
+services:
+  api:
+    image: webapi:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '5384:5000'
+    volumes:
+      - ./bookdata:/app/bookdata
+    # network_mode: host
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+    networks:
+      - alexandria_network
+networks:
+  alexandria_network:
