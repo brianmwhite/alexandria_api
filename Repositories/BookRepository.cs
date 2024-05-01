@@ -6,9 +6,9 @@ using alexandria.api.Helpers;
 
 public interface IBookRepository
 {
-    Task<IEnumerable<Book>> GetAll();
+    Task<IEnumerable<Book>> GetAll(int page_number = 1, int page_size = 10);
     Task<Book> GetById(int id);
-    Task<IEnumerable<Book>> Search(string query);
+    Task<IEnumerable<Book>> Search(string query, int page_number = 1, int page_size = 10);
 }
 
 public class BookRepository : IBookRepository
@@ -51,7 +51,8 @@ public class BookRepository : IBookRepository
         bi.path || '/' || fi.epub_name || '.epub' AS EpubFullPath
     FROM book_info AS bi
     LEFT JOIN format_info AS fi ON bi.book_id = fi.book
-    ORDER BY bi.series_names, bi.series_index ASC, bi.title ASC;
+   	ORDER BY bi.last_modified DESC
+    LIMIT @page_size OFFSET @page_size * (@page_number - 1)
 """;
     private const string book_query_search_where_clause = """
     WHERE (b.title LIKE COALESCE('%' || @title || '%', b.title) OR 
@@ -70,25 +71,25 @@ public class BookRepository : IBookRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<Book>> GetAll()
+    public async Task<IEnumerable<Book>> GetAll(int page_number = 1, int page_size = 10)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, "");
-        return await connection.QueryAsync<Book>(sql);
+        return await connection.QueryAsync<Book>(sql, new { page_number, page_size });
     }
 
     public async Task<Book> GetById(int id)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_id_where_clause);
-        var result = await connection.QuerySingleOrDefaultAsync<Book>(sql, new { id });
+        var result = await connection.QuerySingleOrDefaultAsync<Book>(sql, new { id, page_size = 1, page_number = 1 });
         return result ?? new Book();
     }
 
-    public async Task<IEnumerable<Book>> Search(string query)
+    public async Task<IEnumerable<Book>> Search(string query, int page_number = 1, int page_size = 10)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_search_where_clause);
-        return await connection.QueryAsync<Book>(sql, new { title = query, author = query, series = query });
+        return await connection.QueryAsync<Book>(sql, new { title = query, author = query, series = query, page_size, page_number });
     }
 }

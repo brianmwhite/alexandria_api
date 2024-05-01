@@ -15,16 +15,16 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Search([FromQuery] string? search)
+    public async Task<IActionResult> Search([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int limit = 10)
     {
         if (string.IsNullOrEmpty(search))
         {
-            var books = await _bookService.GetAll();
+            var books = await _bookService.GetAll(page, limit);
             return Ok(books);
         }
         else
         {
-            var books = await _bookService.Search(search);
+            var books = await _bookService.Search(search, page, limit);
             return Ok(books);
         }
     }

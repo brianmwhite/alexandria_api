@@ -8,9 +8,9 @@ using alexandria.api.Repositories;
 
 public interface IBookService
 {
-    Task<IEnumerable<Book>> GetAll();
+    Task<IEnumerable<Book>> GetAll(int page_number, int page_size);
     Task<Book> GetById(int id);
-    Task<IEnumerable<Book>> Search(string query);
+    Task<IEnumerable<Book>> Search(string query, int page_number, int page_size);
 }
 
 public class BookService : IBookService
@@ -26,9 +26,9 @@ public class BookService : IBookService
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<Book>> GetAll()
+    public async Task<IEnumerable<Book>> GetAll(int page_number = 1, int page_size = 10)
     {
-        return await _bookRepository.GetAll();
+        return await _bookRepository.GetAll(page_number, page_size);
     }
 
     public async Task<Book> GetById(int id)
@@ -41,9 +41,9 @@ public class BookService : IBookService
         return book;
     }
 
-    public async Task<IEnumerable<Book>> Search(string query)
+    public async Task<IEnumerable<Book>> Search(string query, int page_number = 1, int page_size = 10)
     {
-        return await _bookRepository.Search(query);
+        return await _bookRepository.Search(query, page_number, page_size);
     }
 
 }

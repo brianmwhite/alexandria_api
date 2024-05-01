@@ -5,7 +5,12 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/Books
+  url: {{baseUrl}}/Books?page=1&limit=10
   body: none
   auth: none
+}
+
+query {
+  page: 1
+  limit: 10
 }
