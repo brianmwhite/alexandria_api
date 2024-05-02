@@ -18,15 +18,19 @@ public class BookRepository : IBookRepository
     SELECT b.id AS book_id, 
            b.title, 
            GROUP_CONCAT(a.name, ', ') AS authors, 
-           GROUP_CONCAT(s.name, ', ') AS series_names, 
+           s.name AS series_names,
            b.series_index,
 		   b.last_modified,
 		   b.path
     FROM books AS b
     LEFT JOIN books_authors_link AS bal ON b.id = bal.book
     LEFT JOIN authors AS a ON bal.author = a.id
-    LEFT JOIN books_series_link AS bsl ON b.id = bsl.book
-    LEFT JOIN series AS s ON bsl.series = s.id
+    LEFT JOIN (
+        SELECT book, MIN(series) as series
+        FROM books_series_link
+        GROUP BY book
+    ) AS bsl_min ON b.id = bsl_min.book
+    LEFT JOIN series AS s ON bsl_min.series = s.id
     {0}
     GROUP BY b.id
     ),
