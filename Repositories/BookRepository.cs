@@ -49,7 +49,7 @@ public class BookRepository : IBookRepository
         bi.authors, 
         bi.series_names as Series, 
         bi.series_index as SeriesIndex,
-        datetime(bi.last_modified) as LastModified, 
+        COALESCE(bi.series_names || ' [' || (CASE WHEN bi.series_index = CAST(bi.series_index AS INTEGER) THEN CAST(bi.series_index AS INTEGER) ELSE bi.series_index END) || ']', '') as SeriesInfo,        datetime(bi.last_modified) as LastModified, 
         bi.path || '/' || fi.mobi_name || '.mobi' AS MobiFullPath,
         bi.path || '/' || fi.azw3_name || '.azw3' AS Azw3FullPath,
         bi.path || '/' || fi.epub_name || '.epub' AS EpubFullPath

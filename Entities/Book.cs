@@ -9,6 +9,7 @@ public class Book
     public string? Authors { get; set; }
     public string? Series { get; set; }
     public int SeriesIndex { get; set; }
+    public string? SeriesInfo { get; set; }
     public DateTime? LastModified { get; set; }
     public string? MobiFullPath { get; set; }
     public string? Azw3FullPath { get; set; }
@@ -21,6 +22,7 @@ public class Book
         Title = "Unknown";
         Series = null;
         SeriesIndex = 1;
+        SeriesInfo = null;
         LastModified = null;
         MobiFullPath = null;
         Azw3FullPath = null;
