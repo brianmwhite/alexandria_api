@@ -6,12 +6,16 @@ using alexandria.api.Helpers;
 
 public interface IBookRepository
 {
-    Task<IEnumerable<Book>> GetAll(int page_number = 1, int page_size = 10);
+    const int DefaultPageNumber = 1;
+    const int DefaultPageSize = 10;
+    Task<IEnumerable<Book>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<IEnumerable<Book>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<IEnumerable<Book>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
     Task<Book> GetById(int id);
-    Task<IEnumerable<Book>> Search(string query, int page_number = 1, int page_size = 10);
+    Task<IEnumerable<Book>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
 }
 
-public class BookRepository : IBookRepository
+public class BookRepository(DataContext context) : IBookRepository
 {
     private const string book_query = """
     WITH book_info AS (
@@ -63,19 +67,13 @@ public class BookRepository : IBookRepository
        a.name LIKE COALESCE('%' || @author || '%', a.name) OR 
        s.name LIKE COALESCE('%' || @series || '%', s.name))
 """;
-    private const string book_query_id_where_clause = """
-    WHERE b.id = @id
-""";
+    private const string book_query_id_where_clause = "WHERE b.id = @id";
+    private const string book_query_series_id_where_clause = "WHERE s.id = @id";
+    private const string book_query_author_id_where_clause = "WHERE a.id = @id";
 
+    private DataContext _context = context;
 
-    private DataContext _context;
-
-    public BookRepository(DataContext context)
-    {
-        _context = context;
-    }
-
-    public async Task<IEnumerable<Book>> GetAll(int page_number = 1, int page_size = 10)
+    public async Task<IEnumerable<Book>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, "");
@@ -86,11 +84,25 @@ public class BookRepository : IBookRepository
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_id_where_clause);
-        var result = await connection.QuerySingleOrDefaultAsync<Book>(sql, new { id, page_size = 1, page_number = 1 });
+        var result = await connection.QuerySingleOrDefaultAsync<Book>(sql, new { id, page_size = IBookRepository.DefaultPageSize, page_number = IBookRepository.DefaultPageNumber });
         return result ?? new Book();
     }
 
-    public async Task<IEnumerable<Book>> Search(string query, int page_number = 1, int page_size = 10)
+    public async Task<IEnumerable<Book>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    {
+        using var connection = _context.CreateConnection();
+        var sql = string.Format(book_query, book_query_series_id_where_clause);
+        return await connection.QueryAsync<Book>(sql, new { id, page_number, page_size });
+    }
+
+    public async Task<IEnumerable<Book>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    {
+        using var connection = _context.CreateConnection();
+        var sql = string.Format(book_query, book_query_author_id_where_clause);
+        return await connection.QueryAsync<Book>(sql, new { id, page_number, page_size });
+    }
+
+    public async Task<IEnumerable<Book>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_search_where_clause);

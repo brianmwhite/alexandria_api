@@ -7,6 +7,8 @@ using alexandria.api.Services;
 [Route("[controller]")]
 public class BooksController : ControllerBase
 {
+    const int DefaultPageNumber = 1;
+    const int DefaultPageSize = 10;
     private IBookService _bookService;
 
     public BooksController(IBookService bookService)
@@ -15,7 +17,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> Search([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int limit = 10)
+    public async Task<IActionResult> Search([FromQuery] string? search, [FromQuery] int page = DefaultPageNumber, [FromQuery] int limit = DefaultPageSize)
     {
         if (string.IsNullOrEmpty(search))
         {
@@ -28,6 +30,21 @@ public class BooksController : ControllerBase
             return Ok(books);
         }
     }
+
+    [HttpGet("series/{id}")]
+    public async Task<IActionResult> Series([FromRoute] int id, [FromQuery] int page = DefaultPageNumber, [FromQuery] int limit = DefaultPageSize)
+    {
+        var books = await _bookService.GetBySeries(id, page, limit);
+        return Ok(books);
+    }
+
+    [HttpGet("author/{id}")]
+    public async Task<IActionResult> Author([FromRoute] int id, [FromQuery] int page = DefaultPageNumber, [FromQuery] int limit = DefaultPageSize)
+    {
+        var books = await _bookService.GetByAuthor(id, page, limit);
+        return Ok(books);
+    }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
