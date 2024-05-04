@@ -5,17 +5,13 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/Books?search={{query}}&page=1&limit=10
+  url: {{baseUrl}}/Books?search=Cradle&page=1&limit=10
   body: none
   auth: none
 }
 
 query {
-  search: {{query}}
+  search: Cradle
   page: 1
   limit: 10
-}
-
-vars:pre-request {
-  query: Cradle
 }

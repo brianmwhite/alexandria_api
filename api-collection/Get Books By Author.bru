@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/Books/author/562?page=1&limit=20
+  url: {{baseUrl}}/Books/author/{{authorID}}?page=1&limit=20
   body: none
   auth: none
 }
@@ -16,5 +16,5 @@ query {
 }
 
 vars:pre-request {
-  query: Cradle
+  authorID: 562
 }
