@@ -8,11 +8,11 @@ public interface IBookRepository
 {
     const int DefaultPageNumber = 1;
     const int DefaultPageSize = 10;
-    Task<IEnumerable<Book>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<IEnumerable<Book>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<IEnumerable<Book>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<Book> GetById(int id);
-    Task<IEnumerable<Book>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<IEnumerable<BookEntity>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<IEnumerable<BookEntity>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<IEnumerable<BookEntity>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<BookEntity> GetById(int id);
+    Task<IEnumerable<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
 }
 
 public class BookRepository(DataContext context) : IBookRepository
@@ -21,22 +21,25 @@ public class BookRepository(DataContext context) : IBookRepository
     WITH book_info AS (
     SELECT b.id AS book_id, 
            b.title, 
-           GROUP_CONCAT(a.name, ', ') AS authors, 
+           GROUP_CONCAT(a.name, ', ') AS Authors, 
+           GROUP_CONCAT(a.name || '|' || a.id, '|') AS AuthorsWithId, 
            s.name AS series_names,
+		   bsl_min.series as seriesId,
            b.series_index,
+		   b.pubdate,
 		   b.last_modified,
+		   b.timestamp,
 		   b.path
     FROM books AS b
     LEFT JOIN books_authors_link AS bal ON b.id = bal.book
     LEFT JOIN authors AS a ON bal.author = a.id
     LEFT JOIN (
         SELECT book, MIN(series) as series
-        FROM books_series_link
+        FROM books_series_link as bsl
         GROUP BY book
     ) AS bsl_min ON b.id = bsl_min.book
     LEFT JOIN series AS s ON bsl_min.series = s.id
-    {0}
-    GROUP BY b.id
+    {0}	GROUP BY b.id
     ),
     format_info AS (
         SELECT book, 
@@ -50,16 +53,20 @@ public class BookRepository(DataContext context) : IBookRepository
     SELECT 
 	    bi.book_id as id,
         bi.title, 
-        bi.authors, 
-        bi.series_names as Series, 
+        bi.Authors, 
+		bi.AuthorsWithId,
         bi.series_index as SeriesIndex,
-        COALESCE(bi.series_names || ' [' || (CASE WHEN bi.series_index = CAST(bi.series_index AS INTEGER) THEN CAST(bi.series_index AS INTEGER) ELSE bi.series_index END) || ']', '') as SeriesInfo,        datetime(bi.last_modified) as LastModified, 
+		bi.series_names as Series,
+		bi.seriesId as SeriesId,
+        COALESCE(bi.series_names || ' [' || (CASE WHEN bi.series_index = CAST(bi.series_index AS INTEGER) THEN CAST(bi.series_index AS INTEGER) ELSE bi.series_index END) || ']', '') as SeriesInfo,
+		datetime(bi.timestamp) as DateAdded,
+		datetime(bi.pubdate) as PublicationDate,
         bi.path || '/' || fi.mobi_name || '.mobi' AS MobiFullPath,
         bi.path || '/' || fi.azw3_name || '.azw3' AS Azw3FullPath,
         bi.path || '/' || fi.epub_name || '.epub' AS EpubFullPath
     FROM book_info AS bi
     LEFT JOIN format_info AS fi ON bi.book_id = fi.book
-   	ORDER BY bi.last_modified DESC
+   	{1}
     LIMIT @page_size OFFSET @page_size * (@page_number - 1)
 """;
     private const string book_query_search_where_clause = """
@@ -70,42 +77,45 @@ public class BookRepository(DataContext context) : IBookRepository
     private const string book_query_id_where_clause = "WHERE b.id = @id";
     private const string book_query_series_id_where_clause = "WHERE s.id = @id";
     private const string book_query_author_id_where_clause = "WHERE a.id = @id";
+    private const string book_query_search_order_by_clause = "ORDER by bi.timestamp DESC";
+    private const string book_query_series_order_by_clause = "ORDER BY bi.series_index ASC";
+    private const string book_query_author_order_by_clause = "ORDER BY bi.pubdate DESC";
 
     private DataContext _context = context;
 
-    public async Task<IEnumerable<Book>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<IEnumerable<BookEntity>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
-        var sql = string.Format(book_query, "");
-        return await connection.QueryAsync<Book>(sql, new { page_number, page_size });
+        var sql = string.Format(book_query, "", book_query_search_order_by_clause);
+        return await connection.QueryAsync<BookEntity>(sql, new { page_number, page_size });
     }
 
-    public async Task<Book> GetById(int id)
+    public async Task<BookEntity> GetById(int id)
     {
         using var connection = _context.CreateConnection();
-        var sql = string.Format(book_query, book_query_id_where_clause);
-        var result = await connection.QuerySingleOrDefaultAsync<Book>(sql, new { id, page_size = IBookRepository.DefaultPageSize, page_number = IBookRepository.DefaultPageNumber });
-        return result ?? new Book();
+        var sql = string.Format(book_query, book_query_id_where_clause, "");
+        var result = await connection.QuerySingleOrDefaultAsync<BookEntity>(sql, new { id, page_size = IBookRepository.DefaultPageSize, page_number = IBookRepository.DefaultPageNumber });
+        return result ?? new BookEntity();
     }
 
-    public async Task<IEnumerable<Book>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<IEnumerable<BookEntity>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
-        var sql = string.Format(book_query, book_query_series_id_where_clause);
-        return await connection.QueryAsync<Book>(sql, new { id, page_number, page_size });
+        var sql = string.Format(book_query, book_query_series_id_where_clause, book_query_series_order_by_clause);
+        return await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
     }
 
-    public async Task<IEnumerable<Book>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<IEnumerable<BookEntity>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
-        var sql = string.Format(book_query, book_query_author_id_where_clause);
-        return await connection.QueryAsync<Book>(sql, new { id, page_number, page_size });
+        var sql = string.Format(book_query, book_query_author_id_where_clause, book_query_author_order_by_clause);
+        return await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
     }
 
-    public async Task<IEnumerable<Book>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<IEnumerable<BookEntity>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
-        var sql = string.Format(book_query, book_query_search_where_clause);
-        return await connection.QueryAsync<Book>(sql, new { title = query, author = query, series = query, page_size, page_number });
+        var sql = string.Format(book_query, book_query_search_where_clause, book_query_search_order_by_clause);
+        return await connection.QueryAsync<BookEntity>(sql, new { title = query, author = query, series = query, page_size, page_number });
     }
 }

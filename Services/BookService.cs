@@ -26,32 +26,41 @@ public class BookService(
 
     public async Task<IEnumerable<Book>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
-        return await _bookRepository.GetAll(page_number, page_size);
+        var bookEntities = await _bookRepository.GetAll(page_number, page_size);
+        var books = _mapper.Map<IEnumerable<Book>>(bookEntities);
+        return books;
     }
 
     public async Task<Book> GetById(int id)
     {
-        var book = await _bookRepository.GetById(id);
+        var bookEntity = await _bookRepository.GetById(id);
 
-        if (book == null)
+        if (bookEntity == null)
             throw new KeyNotFoundException("Book not found");
 
+        var book = _mapper.Map<Book>(bookEntity);
         return book;
     }
 
     public async Task<IEnumerable<Book>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
-        return await _bookRepository.Search(query, page_number, page_size);
+        var bookEntities = await _bookRepository.Search(query, page_number, page_size);
+        var books = _mapper.Map<IEnumerable<Book>>(bookEntities);
+        return books;
     }
 
     public async Task<IEnumerable<Book>> GetBySeries(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
-        return await _bookRepository.GetBySeriesId(id, page_number, page_size);
+        var bookEntities = await _bookRepository.GetBySeriesId(id, page_number, page_size);
+        var books = _mapper.Map<IEnumerable<Book>>(bookEntities);
+        return books;
     }
 
     public async Task<IEnumerable<Book>> GetByAuthor(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
-        return await _bookRepository.GetByAuthorId(id, page_number, page_size);
+        var bookEntities = await _bookRepository.GetByAuthorId(id, page_number, page_size);
+        var books = _mapper.Map<IEnumerable<Book>>(bookEntities);
+        return books;
     }
 
 
