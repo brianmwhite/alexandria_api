@@ -8,15 +8,34 @@ public interface IBookRepository
 {
     const int DefaultPageNumber = 1;
     const int DefaultPageSize = 10;
-    Task<IEnumerable<BookEntity>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<IEnumerable<BookEntity>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<IEnumerable<BookEntity>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<BookEntity> GetById(int id);
-    Task<IEnumerable<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetById(int id);
+    Task<PagedResult<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+}
+
+public class PagedResult<T>
+{
+    public IEnumerable<T>? Data { get; set; }
+    public int TotalCount { get; set; }
 }
 
 public class BookRepository(DataContext context) : IBookRepository
 {
+    private const string book_query_total_rows = """
+    SELECT COUNT(*) AS RowCount
+    FROM books AS b
+    LEFT JOIN books_authors_link AS bal ON b.id = bal.book
+    LEFT JOIN authors AS a ON bal.author = a.id
+    LEFT JOIN (
+        SELECT book, MIN(series) as series
+        FROM books_series_link as bsl
+        GROUP BY book
+    ) AS bsl_min ON b.id = bsl_min.book
+    LEFT JOIN series AS s ON bsl_min.series = s.id
+    {0}
+    """;
     private const string book_query = """
     WITH book_info AS (
     SELECT b.id AS book_id, 
@@ -83,39 +102,71 @@ public class BookRepository(DataContext context) : IBookRepository
 
     private DataContext _context = context;
 
-    public async Task<IEnumerable<BookEntity>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, "", book_query_search_order_by_clause);
-        return await connection.QueryAsync<BookEntity>(sql, new { page_number, page_size });
+        var data = await connection.QueryAsync<BookEntity>(sql, new { page_number, page_size });
+        var total_rows = await connection.QuerySingleAsync<int>(string.Format(book_query_total_rows, ""));
+
+        return new PagedResult<BookEntity>
+        {
+            Data = data,
+            TotalCount = total_rows
+        };
     }
 
-    public async Task<BookEntity> GetById(int id)
+    public async Task<PagedResult<BookEntity>> GetById(int id)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_id_where_clause, "");
         var result = await connection.QuerySingleOrDefaultAsync<BookEntity>(sql, new { id, page_size = IBookRepository.DefaultPageSize, page_number = IBookRepository.DefaultPageNumber });
-        return result ?? new BookEntity();
+        return new PagedResult<BookEntity>
+        {
+            Data = result != null ? new List<BookEntity> { result } : null,
+            TotalCount = 1
+        };
     }
 
-    public async Task<IEnumerable<BookEntity>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_series_id_where_clause, book_query_series_order_by_clause);
-        return await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
+        var data = await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
+        var total_rows = await connection.QuerySingleAsync<int>(string.Format(book_query_total_rows, book_query_series_id_where_clause), new { id });
+
+        return new PagedResult<BookEntity>
+        {
+            Data = data,
+            TotalCount = total_rows
+        };
     }
 
-    public async Task<IEnumerable<BookEntity>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_author_id_where_clause, book_query_author_order_by_clause);
-        return await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
+        var data = await connection.QueryAsync<BookEntity>(sql, new { id, page_number, page_size });
+        var total_rows = await connection.QuerySingleAsync<int>(string.Format(book_query_total_rows, book_query_author_id_where_clause), new { id });
+
+        return new PagedResult<BookEntity>
+        {
+            Data = data,
+            TotalCount = total_rows
+        };
     }
 
-    public async Task<IEnumerable<BookEntity>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_search_where_clause, book_query_search_order_by_clause);
-        return await connection.QueryAsync<BookEntity>(sql, new { title = query, author = query, series = query, page_size, page_number });
+        var data = await connection.QueryAsync<BookEntity>(sql, new { title = query, author = query, series = query, page_size, page_number });
+        var total_rows = await connection.QuerySingleAsync<int>(string.Format(book_query_total_rows, book_query_search_where_clause), new { title = query, author = query, series = query });
+
+        return new PagedResult<BookEntity>
+        {
+            Data = data,
+            TotalCount = total_rows
+        };
     }
 }
