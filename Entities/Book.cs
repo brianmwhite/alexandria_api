@@ -4,18 +4,18 @@ using System.Text.Json.Serialization;
 
 public class Author
 {
-    public int? Id { get; set; }
+    public long? Id { get; set; }
     public string? Name { get; set; }
 }
 
 public class Book
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
     public string? Title { get; set; }
     public string? Authors { get; set; }
     public List<Author>? AuthorList { get; set; }
     public string? SeriesInfo { get; set; }
-    public int? SeriesId { get; set; }
+    public long? SeriesId { get; set; }
     public DateTime? DateAdded { get; set; }
     public DateTime? PublicationDate { get; set; }
     public string? MobiFullPath { get; set; }
