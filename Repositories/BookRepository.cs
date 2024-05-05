@@ -24,7 +24,8 @@ public class PagedResult<T>
 public class BookRepository(DataContext context) : IBookRepository
 {
     private const string book_query_total_rows = """
-    SELECT COUNT(*) AS RowCount
+    WITH book_info as (
+    SELECT b.id
     FROM books AS b
     LEFT JOIN books_authors_link AS bal ON b.id = bal.book
     LEFT JOIN authors AS a ON bal.author = a.id
@@ -35,7 +36,10 @@ public class BookRepository(DataContext context) : IBookRepository
     ) AS bsl_min ON b.id = bsl_min.book
     LEFT JOIN series AS s ON bsl_min.series = s.id
     {0}
-    """;
+	GROUP BY b.id
+    )
+    select count(*) as RowCount from book_info  
+""";
     private const string book_query = """
     WITH book_info AS (
     SELECT b.id AS book_id, 
