@@ -1,4 +1,4 @@
 bin/Debug/net8.0
 obj
+bookdata/
 metadata.db
-bookdata/metadata.db-journal
