@@ -14,7 +14,7 @@ public class BookEntity
     public long? SeriesId { get; set; }
     public DateTime? DateAdded { get; set; }
     public DateTime? PublicationDate { get; set; }
-    public string? MobiFullPath { get; set; }
-    public string? Azw3FullPath { get; set; }
-    public string? EpubFullPath { get; set; }
+    public bool hasMobi { get; set; }
+    public bool hasAzw3 { get; set; }
+    public bool hasEpub { get; set; }
 }

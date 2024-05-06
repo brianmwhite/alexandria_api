@@ -1,0 +1,27 @@
+meta {
+  name: Transfer Book
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/books/transfer
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "id": {{bookId}},
+    "format": "{{format}}"
+  }
+}
+
+vars:pre-request {
+  bookId: 879
+  format: azw3
+}

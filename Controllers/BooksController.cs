@@ -52,4 +52,23 @@ public class BooksController : ControllerBase
         var book = await _bookService.GetById(id);
         return Ok(book);
     }
+
+    public class TransferRequest
+    {
+        public int Id { get; set; }
+        private string _format = "";
+
+        public string Format
+        {
+            get { return _format; }
+            set { _format = value?.ToUpper() ?? string.Empty; }
+        }
+    }
+
+    [HttpPost("transfer")]
+    public async Task<IActionResult> Transfer([FromBody] TransferRequest request)
+    {
+        await _bookService.TransferBookFile(request.Id, request.Format);
+        return Ok();
+    }
 }

@@ -13,6 +13,7 @@ public interface IBookRepository
     Task<PagedResult<BookEntity>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
     Task<PagedResult<BookEntity>> GetById(int id);
     Task<PagedResult<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<string?> GetBookFilePath(int id, string format);
 }
 
 public class PagedResult<T>
@@ -40,6 +41,14 @@ public class BookRepository(DataContext context) : IBookRepository
     )
     select count(*) as RowCount from book_info  
 """;
+
+    private const string format_query = """
+    SELECT b.path || '/' || d.name || '.' || LOWER(d.format) as book_file_path
+    FROM data d
+    INNER JOIN books b ON b.id = d.book
+    WHERE book = @id
+    AND format = @format
+""";
     private const string book_query = """
     WITH book_info AS (
     SELECT b.id AS book_id, 
@@ -66,9 +75,9 @@ public class BookRepository(DataContext context) : IBookRepository
     ),
     format_info AS (
         SELECT book, 
-            MAX(CASE WHEN format = 'MOBI' THEN name END) AS mobi_name,
-            MAX(CASE WHEN format = 'AZW3' THEN name END) AS azw3_name,
-            MAX(CASE WHEN format = 'EPUB' THEN name END) AS epub_name
+            MAX(CASE WHEN format = 'MOBI' THEN true Else false END) AS hasMobi,
+            MAX(CASE WHEN format = 'AZW3' THEN true Else false END) AS hasAzw3,
+            MAX(CASE WHEN format = 'EPUB' THEN true Else false END) AS hasEpub
         FROM DATA
         WHERE format IN ('MOBI', 'AZW3', 'EPUB')
         GROUP BY book
@@ -84,9 +93,9 @@ public class BookRepository(DataContext context) : IBookRepository
         COALESCE(bi.series_names || ' [' || (CASE WHEN bi.series_index = CAST(bi.series_index AS INTEGER) THEN CAST(bi.series_index AS INTEGER) ELSE bi.series_index END) || ']', '') as SeriesInfo,
 		datetime(bi.timestamp) as DateAdded,
 		datetime(bi.pubdate) as PublicationDate,
-        bi.path || '/' || fi.mobi_name || '.mobi' AS MobiFullPath,
-        bi.path || '/' || fi.azw3_name || '.azw3' AS Azw3FullPath,
-        bi.path || '/' || fi.epub_name || '.epub' AS EpubFullPath
+        fi.hasMobi,
+        fi.hasAzw3,
+        fi.hasEpub
     FROM book_info AS bi
     LEFT JOIN format_info AS fi ON bi.book_id = fi.book
    	{1}
@@ -130,6 +139,14 @@ public class BookRepository(DataContext context) : IBookRepository
             Data = result != null ? new List<BookEntity> { result } : null,
             TotalCount = 1
         };
+    }
+
+    public async Task<string?> GetBookFilePath(int id, string format)
+    {
+        using var connection = _context.CreateConnection();
+        var sql = string.Format(format_query);
+        var result = await connection.QuerySingleOrDefaultAsync<string>(sql, new { id, format });
+        return result;
     }
 
     public async Task<PagedResult<BookEntity>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)

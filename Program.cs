@@ -25,6 +25,7 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
     // configure DI for application services
     services.AddScoped<IBookRepository, BookRepository>();
     services.AddScoped<IBookService, BookService>();
+    services.AddScoped<IFileService, FileService>();
 
 }
 
