@@ -75,9 +75,9 @@ public class BookRepository(DataContext context) : IBookRepository
     ),
     format_info AS (
         SELECT book, 
-            MAX(CASE WHEN format = 'MOBI' THEN true Else false END) AS hasMobi,
-            MAX(CASE WHEN format = 'AZW3' THEN true Else false END) AS hasAzw3,
-            MAX(CASE WHEN format = 'EPUB' THEN true Else false END) AS hasEpub
+            MAX(CASE WHEN format = 'MOBI' THEN true Else false END) AS HasMobi,
+            MAX(CASE WHEN format = 'AZW3' THEN true Else false END) AS HasAzw3,
+            MAX(CASE WHEN format = 'EPUB' THEN true Else false END) AS HasEpub
         FROM DATA
         WHERE format IN ('MOBI', 'AZW3', 'EPUB')
         GROUP BY book
@@ -93,9 +93,9 @@ public class BookRepository(DataContext context) : IBookRepository
         COALESCE(bi.series_names || ' [' || (CASE WHEN bi.series_index = CAST(bi.series_index AS INTEGER) THEN CAST(bi.series_index AS INTEGER) ELSE bi.series_index END) || ']', '') as SeriesInfo,
 		datetime(bi.timestamp) as DateAdded,
 		datetime(bi.pubdate) as PublicationDate,
-        fi.hasMobi,
-        fi.hasAzw3,
-        fi.hasEpub
+        fi.HasMobi,
+        fi.HasAzw3,
+        fi.HasEpub
     FROM book_info AS bi
     LEFT JOIN format_info AS fi ON bi.book_id = fi.book
    	{1}
