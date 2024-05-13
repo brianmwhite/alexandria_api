@@ -1,0 +1,20 @@
+meta {
+  name: Add Known Device Type
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/devicetypes
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "DeviceName": "Device Name",
+      "EbookDirectory": "/path/to/ebooks",
+      "SavePathTemplate": "/path/to/save",
+      "Vendor": "Vendor Name"
+  }
+}

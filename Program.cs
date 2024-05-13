@@ -12,6 +12,7 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
 
     services.AddSingleton<BookDataContext>();
     services.AddSingleton<AppDataContext>();
+
     services.AddCors();
     services.AddControllers().AddJsonOptions(x =>
     {
@@ -28,6 +29,7 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
     services.AddScoped<IBookService, BookService>();
     services.AddScoped<IFileService, FileService>();
     services.AddScoped<IKnownDeviceService, KnownDeviceService>();
+    services.AddScoped<IDeviceTypeService, DeviceTypeService>();
 }
 
 var app = builder.Build();

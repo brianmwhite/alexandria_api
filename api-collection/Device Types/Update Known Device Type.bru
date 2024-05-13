@@ -1,0 +1,20 @@
+meta {
+  name: Update Known Device Type
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/devicetypes/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "DeviceName": "Updated Device Name",
+      "EbookDirectory": "/path/to/ebooks",
+      "SavePathTemplate": "/path/to/save",
+      "Vendor": "Updated Vendor Name"
+  }
+}
