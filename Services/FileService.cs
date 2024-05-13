@@ -34,6 +34,26 @@ namespace alexandria.api.Services
             }
         }
 
-        // Other file operations...
+        public class DirectoryListing
+        {
+            public required string FullPath { get; set; }
+            public required string Name { get; set; }
+        }
+        public List<DirectoryListing> GetSubDirectories(string path)
+        {
+            var directories = Directory.GetDirectories(path);
+            var directoryList = new List<DirectoryListing>();
+            foreach (var directory in directories)
+            {
+                var directoryInfo = new DirectoryInfo(directory);
+                directoryList.Add(
+                    new DirectoryListing
+                    {
+                        FullPath = directory,
+                        Name = directoryInfo.Name
+                    });
+            }
+            return directoryList;
+        }
     }
 }

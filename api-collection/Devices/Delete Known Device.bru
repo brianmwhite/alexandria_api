@@ -1,0 +1,11 @@
+meta {
+  name: Delete Known Device
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/knowndevices/1
+  body: json
+  auth: none
+}

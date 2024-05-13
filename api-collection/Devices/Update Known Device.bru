@@ -1,0 +1,21 @@
+meta {
+  name: Update Known Device
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/knowndevices/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "DeviceName": "Updated Device Name",
+      "EbookDirectory": "/path/to/ebooks",
+      "SavePathTemplate": "/path/to/save",
+      "Vendor": "Updated Vendor Name",
+      "SerialNumber": "01234567890"
+  }
+}

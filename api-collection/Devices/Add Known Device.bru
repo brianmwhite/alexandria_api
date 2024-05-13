@@ -1,0 +1,21 @@
+meta {
+  name: Add Known Device
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/knowndevices
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "DeviceName": "Device Name",
+      "EbookDirectory": "/path/to/ebooks",
+      "SavePathTemplate": "/path/to/save",
+      "Vendor": "Vendor Name",
+      "SerialNumber": "1234567890"
+  }
+}

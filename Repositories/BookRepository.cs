@@ -22,7 +22,7 @@ public class PagedResult<T>
     public int TotalCount { get; set; }
 }
 
-public class BookRepository(DataContext context) : IBookRepository
+public class BookRepository(BookDataContext context) : IBookRepository
 {
     private const string book_query_total_rows = """
     WITH book_info as (
@@ -113,7 +113,7 @@ public class BookRepository(DataContext context) : IBookRepository
     private const string book_query_series_order_by_clause = "ORDER BY bi.series_index ASC";
     private const string book_query_author_order_by_clause = "ORDER BY bi.pubdate DESC";
 
-    private DataContext _context = context;
+    private BookDataContext _context = context;
 
     public async Task<PagedResult<BookEntity>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {

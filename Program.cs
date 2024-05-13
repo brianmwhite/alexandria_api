@@ -10,7 +10,8 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
     var services = builder.Services;
     var env = builder.Environment;
 
-    services.AddSingleton<DataContext>();
+    services.AddSingleton<BookDataContext>();
+    services.AddSingleton<AppDataContext>();
     services.AddCors();
     services.AddControllers().AddJsonOptions(x =>
     {
@@ -26,7 +27,7 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
     services.AddScoped<IBookRepository, BookRepository>();
     services.AddScoped<IBookService, BookService>();
     services.AddScoped<IFileService, FileService>();
-
+    services.AddScoped<IKnownDeviceService, KnownDeviceService>();
 }
 
 var app = builder.Build();
@@ -34,7 +35,8 @@ var app = builder.Build();
 // ensure database and tables exist
 {
     using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
+    var bookDataContext = scope.ServiceProvider.GetRequiredService<BookDataContext>();
+    var appDataContext = scope.ServiceProvider.GetRequiredService<AppDataContext>();
     // await context.Init();
 }
 

@@ -4,11 +4,11 @@ using System.Data;
 using Dapper;
 using Microsoft.Data.Sqlite;
 
-public class DataContext
+public class BookDataContext
 {
     protected readonly IConfiguration Configuration;
 
-    public DataContext(IConfiguration configuration)
+    public BookDataContext(IConfiguration configuration)
     {
         Configuration = configuration;
     }
