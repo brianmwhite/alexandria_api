@@ -1,6 +1,7 @@
 namespace alexandria.api.Helpers;
 
 using alexandria.api.Entities;
+using alexandria.api.Models;
 using AutoMapper;
 
 public class AuthorsResolver : IValueResolver<BookEntity, Book, List<Author>?>
@@ -31,6 +32,8 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<BookEntity, Book>()
             .ForMember(dest => dest.AuthorList, opt => opt.MapFrom<AuthorsResolver>());
+        CreateMap<KnownDevice, KnownDeviceModel>();
+        CreateMap<KnownDeviceModel, KnownDevice>();
     }
 }
 

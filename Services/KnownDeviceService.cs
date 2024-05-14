@@ -1,65 +1,57 @@
 using System.Runtime.InteropServices;
 using alexandria.api.Entities;
+using alexandria.api.Models;
 using alexandria.api.Helpers;
+using AutoMapper;
 
 namespace alexandria.api.Services;
 
 public interface IKnownDeviceService
 {
-    IEnumerable<KnownDevice> GetAll();
-    KnownDevice GetById(long id);
-    void Create(KnownDevice model);
-    void Update(long id, KnownDevice model);
+    IEnumerable<KnownDeviceModel> GetAll();
+    KnownDeviceModel GetById(long id);
+    void Create(KnownDeviceModel model);
+    void Update(long id, KnownDeviceModel model);
     void Delete(long id);
 }
-
 public class KnownDeviceService : IKnownDeviceService
 {
     private readonly AppDataContext _context;
+    private readonly IMapper _mapper;
 
-    public KnownDeviceService(AppDataContext context)
+    public KnownDeviceService(AppDataContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
-    public IEnumerable<KnownDevice> GetAll()
+    public IEnumerable<KnownDeviceModel> GetAll()
     {
-        return _context.KnownDevices.ToList();
+        var knownDevices = _context.KnownDevices.ToList();
+        return _mapper.Map<List<KnownDeviceModel>>(knownDevices);
     }
 
-    public KnownDevice GetById(long id)
+    public KnownDeviceModel GetById(long id)
     {
-        return _context.KnownDevices.Find(id);
+        var knownDevice = _context.KnownDevices.Find(id);
+        if (knownDevice == null) return null;
+
+        return _mapper.Map<KnownDeviceModel>(knownDevice);
     }
 
-    public void Create(KnownDevice model)
+    public void Create(KnownDeviceModel model)
     {
-        var knownDevice = new KnownDevice()
-        {
-            DeviceName = model.DeviceName,
-            EbookDirectory = model.EbookDirectory,
-            SavePathTemplate = model.SavePathTemplate,
-            Vendor = model.Vendor,
-            SerialNumber = model.SerialNumber
-        };
-
+        var knownDevice = _mapper.Map<KnownDevice>(model);
         _context.KnownDevices.Add(knownDevice);
         _context.SaveChanges();
     }
 
-    public void Update(long id, KnownDevice model)
+    public void Update(long id, KnownDeviceModel model)
     {
         var knownDevice = _context.KnownDevices.Find(id);
-
         if (knownDevice == null) return;
 
-        knownDevice.DeviceName = model.DeviceName;
-        knownDevice.EbookDirectory = model.EbookDirectory;
-        knownDevice.SavePathTemplate = model.SavePathTemplate;
-        knownDevice.Vendor = model.Vendor;
-        knownDevice.SerialNumber = model.SerialNumber;
-
-        _context.KnownDevices.Update(knownDevice);
+        _mapper.Map(model, knownDevice);
         _context.SaveChanges();
     }
 

@@ -3,6 +3,7 @@ namespace alexandria.api.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using alexandria.api.Services;
 using alexandria.api.Entities;
+using alexandria.api.Models;
 
 [ApiController]
 [Route("[controller]")]
@@ -30,14 +31,14 @@ public class KnownDevicesController : ControllerBase
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] KnownDevice model)
+    public IActionResult Create([FromBody] KnownDeviceModel model)
     {
         _knownDeviceService.Create(model);
         return Ok();
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] KnownDevice model)
+    public IActionResult Update(int id, [FromBody] KnownDeviceModel model)
     {
         _knownDeviceService.Update(id, model);
         return Ok();
