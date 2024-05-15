@@ -1,20 +1,20 @@
 meta {
-  name: Update Known Device Type
+  name: Add Device Type
   type: http
   seq: 4
 }
 
-put {
-  url: {{baseUrl}}/devicetypes/1
+post {
+  url: {{baseUrl}}/devicetypes
   body: json
   auth: none
 }
 
 body:json {
   {
-      "DeviceName": "Updated Device Name",
+      "DeviceName": "Device Name",
       "EbookDirectory": "/path/to/ebooks",
       "SavePathTemplate": "/path/to/save",
-      "Vendor": "Updated Vendor Name"
+      "Vendor": "Vendor Name"
   }
 }

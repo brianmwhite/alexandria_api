@@ -1,0 +1,15 @@
+meta {
+  name: Search Known Devices
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/knowndevices?search=kindle
+  body: none
+  auth: none
+}
+
+query {
+  search: kindle
+}

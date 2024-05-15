@@ -1,10 +1,8 @@
-using System.Runtime.InteropServices;
 using alexandria.api.Entities;
 using alexandria.api.Models;
 using alexandria.api.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 
 namespace alexandria.api.Services;
 
@@ -45,14 +43,16 @@ public class KnownDeviceService : IKnownDeviceService
 
     public async Task<PagedResult<KnownDeviceModel>> Search(string query, int page_number = IKnownDeviceService.DefaultPageNumber, int page_size = IKnownDeviceService.DefaultPageSize)
     {
+        query = query.ToLower();
+
         var knownDevices = await _context.KnownDevices
-            .Where(x => x.DeviceName.Contains(query) || x.Vendor.Contains(query))
+            .Where(x => x.DeviceName.ToLower().Contains(query) || x.Vendor.ToLower().Contains(query))
             .Skip((page_number - 1) * page_size)
             .Take(page_size)
             .ToListAsync();
 
         var totalCount = await _context.KnownDevices
-            .Where(x => x.DeviceName.Contains(query) || x.Vendor.Contains(query))
+            .Where(x => x.DeviceName.ToLower().Contains(query) || x.Vendor.ToLower().Contains(query))
             .CountAsync();
 
         var devices = _mapper.Map<List<KnownDeviceModel>>(knownDevices);

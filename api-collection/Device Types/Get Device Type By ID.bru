@@ -1,11 +1,11 @@
 meta {
-  name: Delete Known Device Type
+  name: Get Device Type By ID
   type: http
-  seq: 5
+  seq: 3
 }
 
-delete {
+get {
   url: {{baseUrl}}/devicetypes/1
-  body: json
+  body: none
   auth: none
 }

@@ -2,7 +2,6 @@ namespace alexandria.api.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using alexandria.api.Services;
-using alexandria.api.Entities;
 using alexandria.api.Models;
 
 [ApiController]

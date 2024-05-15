@@ -2,12 +2,14 @@ namespace alexandria.api.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
 using alexandria.api.Services;
-using alexandria.api.Entities;
+using alexandria.api.Models;
 
 [ApiController]
 [Route("[controller]")]
 public class DeviceTypesController : ControllerBase
 {
+    const int DefaultPageNumber = 1;
+    const int DefaultPageSize = 10;
     private IDeviceTypeService _deviceTypeService;
 
     public DeviceTypesController(IDeviceTypeService deviceTypeService)
@@ -16,37 +18,45 @@ public class DeviceTypesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> Search([FromQuery] string? search, int page = DefaultPageNumber, [FromQuery] int limit = DefaultPageSize)
     {
-        var deviceTypes = _deviceTypeService.GetAll();
-        return Ok(deviceTypes);
+        if (string.IsNullOrEmpty(search))
+        {
+            var deviceTypes = await _deviceTypeService.GetAll(page, limit);
+            return Ok(deviceTypes);
+        }
+        else
+        {
+            var deviceTypes = await _deviceTypeService.Search(search, page, limit);
+            return Ok(deviceTypes);
+        }
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var deviceType = _deviceTypeService.GetById(id);
-        return Ok(deviceType);
+        var deviceTypes = await _deviceTypeService.GetById(id);
+        return Ok(deviceTypes);
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] DeviceType model)
+    public async Task<IActionResult> Create([FromBody] DeviceTypeModel model)
     {
-        _deviceTypeService.Create(model);
+        await _deviceTypeService.Create(model);
         return Ok();
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] DeviceType model)
+    public async Task<IActionResult> Update(int id, [FromBody] DeviceTypeModel model)
     {
-        _deviceTypeService.Update(id, model);
+        await _deviceTypeService.Update(id, model);
         return Ok();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        _deviceTypeService.Delete(id);
+        await _deviceTypeService.Delete(id);
         return Ok();
     }
 }

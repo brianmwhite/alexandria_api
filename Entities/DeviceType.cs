@@ -1,3 +1,4 @@
+namespace alexandria.api.Entities;
 public class DeviceType
 {
     public long Id { get; set; }
