@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace alexandria_api.Migrations
+namespace alexandria.api.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

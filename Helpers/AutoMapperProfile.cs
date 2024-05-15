@@ -4,18 +4,18 @@ using alexandria.api.Entities;
 using alexandria.api.Models;
 using AutoMapper;
 
-public class AuthorsResolver : IValueResolver<BookEntity, Book, List<Author>?>
+public class AuthorsResolver : IValueResolver<BookEntity, BookModel, List<AuthorModel>?>
 {
-    public List<Author>? Resolve(BookEntity source, Book dest, List<Author>? destMember, ResolutionContext context)
+    public List<AuthorModel>? Resolve(BookEntity source, BookModel dest, List<AuthorModel>? destMember, ResolutionContext context)
     {
-        var authors = new List<Author>();
+        var authors = new List<AuthorModel>();
         if (!string.IsNullOrEmpty(source.AuthorsWithId))
         {
             var authorPart = source.AuthorsWithId.Split('|');
             var numberOfParts = authorPart.Length / 2;
             for (var i = 0; i < numberOfParts; i++)
             {
-                authors.Add(new Author
+                authors.Add(new AuthorModel
                 {
                     Id = int.Parse(authorPart[i * 2 + 1]),
                     Name = authorPart[i * 2]
@@ -30,10 +30,12 @@ public class AutoMapperProfile : Profile
 {
     public AutoMapperProfile()
     {
-        CreateMap<BookEntity, Book>()
+        CreateMap<BookEntity, BookModel>()
             .ForMember(dest => dest.AuthorList, opt => opt.MapFrom<AuthorsResolver>());
         CreateMap<KnownDevice, KnownDeviceModel>();
-        CreateMap<KnownDeviceModel, KnownDevice>();
+
+        CreateMap<KnownDeviceModel, KnownDevice>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 }
 

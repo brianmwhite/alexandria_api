@@ -9,6 +9,8 @@ using alexandria.api.Models;
 [Route("[controller]")]
 public class KnownDevicesController : ControllerBase
 {
+    const int DefaultPageNumber = 1;
+    const int DefaultPageSize = 10;
     private IKnownDeviceService _knownDeviceService;
 
     public KnownDevicesController(IKnownDeviceService knownDeviceService)
@@ -17,37 +19,45 @@ public class KnownDevicesController : ControllerBase
     }
 
     [HttpGet]
-    public IActionResult GetAll()
+    public async Task<IActionResult> Search([FromQuery] string? search, int page = DefaultPageNumber, [FromQuery] int limit = DefaultPageSize)
     {
-        var knownDevices = _knownDeviceService.GetAll();
-        return Ok(knownDevices);
+        if (string.IsNullOrEmpty(search))
+        {
+            var knownDevices = await _knownDeviceService.GetAll(page, limit);
+            return Ok(knownDevices);
+        }
+        else
+        {
+            var knownDevices = await _knownDeviceService.Search(search, page, limit);
+            return Ok(knownDevices);
+        }
     }
 
     [HttpGet("{id}")]
-    public IActionResult GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
-        var knownDevice = _knownDeviceService.GetById(id);
+        var knownDevice = await _knownDeviceService.GetById(id);
         return Ok(knownDevice);
     }
 
     [HttpPost]
-    public IActionResult Create([FromBody] KnownDeviceModel model)
+    public async Task<IActionResult> Create([FromBody] KnownDeviceModel model)
     {
-        _knownDeviceService.Create(model);
+        await _knownDeviceService.Create(model);
         return Ok();
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id, [FromBody] KnownDeviceModel model)
+    public async Task<IActionResult> Update(int id, [FromBody] KnownDeviceModel model)
     {
-        _knownDeviceService.Update(id, model);
+        await _knownDeviceService.Update(id, model);
         return Ok();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        _knownDeviceService.Delete(id);
+        await _knownDeviceService.Delete(id);
         return Ok();
     }
 }

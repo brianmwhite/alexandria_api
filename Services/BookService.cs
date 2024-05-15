@@ -1,19 +1,20 @@
 namespace alexandria.api.Services;
 
 using AutoMapper;
-using alexandria.api.Entities;
+using alexandria.api.Helpers;
 using alexandria.api.Repositories;
+using alexandria.api.Models;
 
 public interface IBookService
 {
     const int DefaultPageNumber = 1;
     const int DefaultPageSize = 10;
-    Task<PagedResult<Book>> GetAll(int page_number, int page_size);
-    Task<PagedResult<Book>> GetById(int id);
+    Task<PagedResult<BookModel>> GetAll(int page_number, int page_size);
+    Task<PagedResult<BookModel>> GetById(int id);
     Task TransferBookFile(int id, string format);
-    Task<PagedResult<Book>> Search(string query, int page_number, int page_size);
-    Task<PagedResult<Book>> GetBySeries(int id, int page_number, int page_size);
-    Task<PagedResult<Book>> GetByAuthor(int id, int page_number, int page_size);
+    Task<PagedResult<BookModel>> Search(string query, int page_number, int page_size);
+    Task<PagedResult<BookModel>> GetBySeries(int id, int page_number, int page_size);
+    Task<PagedResult<BookModel>> GetByAuthor(int id, int page_number, int page_size);
 }
 
 public class BookService : IBookService
@@ -29,18 +30,18 @@ public class BookService : IBookService
         _mapper = mapper;
     }
 
-    public async Task<PagedResult<Book>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookModel>> GetAll(int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         var pagedResultEntity = await _bookRepository.GetAll(page_number, page_size);
-        var books = _mapper.Map<IEnumerable<Book>>(pagedResultEntity.Data);
-        return new PagedResult<Book> { Data = books, TotalCount = pagedResultEntity.TotalCount };
+        var books = _mapper.Map<IEnumerable<BookModel>>(pagedResultEntity.Data);
+        return new PagedResult<BookModel> { Data = books, TotalCount = pagedResultEntity.TotalCount };
     }
 
-    public async Task<PagedResult<Book>> GetById(int id)
+    public async Task<PagedResult<BookModel>> GetById(int id)
     {
         var pagedResultEntity = await _bookRepository.GetById(id) ?? throw new KeyNotFoundException("Book not found");
-        var books = _mapper.Map<IEnumerable<Book>>(pagedResultEntity.Data);
-        return new PagedResult<Book> { Data = books, TotalCount = pagedResultEntity.TotalCount };
+        var books = _mapper.Map<IEnumerable<BookModel>>(pagedResultEntity.Data);
+        return new PagedResult<BookModel> { Data = books, TotalCount = pagedResultEntity.TotalCount };
     }
 
     public async Task TransferBookFile(int id, string format)
@@ -52,25 +53,25 @@ public class BookService : IBookService
         }
     }
 
-    public async Task<PagedResult<Book>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookModel>> Search(string query, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         var pagedResultEntity = await _bookRepository.Search(query, page_number, page_size);
-        var books = _mapper.Map<IEnumerable<Book>>(pagedResultEntity.Data);
-        return new PagedResult<Book> { Data = books, TotalCount = pagedResultEntity.TotalCount };
+        var books = _mapper.Map<IEnumerable<BookModel>>(pagedResultEntity.Data);
+        return new PagedResult<BookModel> { Data = books, TotalCount = pagedResultEntity.TotalCount };
     }
 
-    public async Task<PagedResult<Book>> GetBySeries(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookModel>> GetBySeries(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         var pagedResultEntity = await _bookRepository.GetBySeriesId(id, page_number, page_size);
-        var books = _mapper.Map<IEnumerable<Book>>(pagedResultEntity.Data);
-        return new PagedResult<Book> { Data = books, TotalCount = pagedResultEntity.TotalCount };
+        var books = _mapper.Map<IEnumerable<BookModel>>(pagedResultEntity.Data);
+        return new PagedResult<BookModel> { Data = books, TotalCount = pagedResultEntity.TotalCount };
     }
 
-    public async Task<PagedResult<Book>> GetByAuthor(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookModel>> GetByAuthor(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         var pagedResultEntity = await _bookRepository.GetByAuthorId(id, page_number, page_size);
-        var books = _mapper.Map<IEnumerable<Book>>(pagedResultEntity.Data);
-        return new PagedResult<Book> { Data = books, TotalCount = pagedResultEntity.TotalCount };
+        var books = _mapper.Map<IEnumerable<BookModel>>(pagedResultEntity.Data);
+        return new PagedResult<BookModel> { Data = books, TotalCount = pagedResultEntity.TotalCount };
     }
 
 

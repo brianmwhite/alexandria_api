@@ -16,12 +16,6 @@ public interface IBookRepository
     Task<string?> GetBookFilePath(int id, string format);
 }
 
-public class PagedResult<T>
-{
-    public IEnumerable<T>? Data { get; set; }
-    public int TotalCount { get; set; }
-}
-
 public class BookRepository(BookDataContext context) : IBookRepository
 {
     private const string book_query_total_rows = """

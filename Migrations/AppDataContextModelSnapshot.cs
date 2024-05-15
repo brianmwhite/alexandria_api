@@ -6,7 +6,7 @@ using alexandria.api.Helpers;
 
 #nullable disable
 
-namespace alexandria_api.Migrations
+namespace alexandria.api.Migrations
 {
     [DbContext(typeof(AppDataContext))]
     partial class AppDataContextModelSnapshot : ModelSnapshot

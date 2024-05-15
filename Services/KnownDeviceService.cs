@@ -3,16 +3,21 @@ using alexandria.api.Entities;
 using alexandria.api.Models;
 using alexandria.api.Helpers;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
 namespace alexandria.api.Services;
 
 public interface IKnownDeviceService
 {
-    IEnumerable<KnownDeviceModel> GetAll();
-    KnownDeviceModel GetById(long id);
-    void Create(KnownDeviceModel model);
-    void Update(long id, KnownDeviceModel model);
-    void Delete(long id);
+    const int DefaultPageNumber = 1;
+    const int DefaultPageSize = 10;
+    Task<PagedResult<KnownDeviceModel>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<KnownDeviceModel>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<KnownDeviceModel>> GetById(long id);
+    Task Create(KnownDeviceModel model);
+    Task Update(long id, KnownDeviceModel model);
+    Task Delete(long id);
 }
 public class KnownDeviceService : IKnownDeviceService
 {
@@ -25,43 +30,70 @@ public class KnownDeviceService : IKnownDeviceService
         _mapper = mapper;
     }
 
-    public IEnumerable<KnownDeviceModel> GetAll()
+    public async Task<PagedResult<KnownDeviceModel>> GetAll(int page_number = IKnownDeviceService.DefaultPageNumber, int page_size = IKnownDeviceService.DefaultPageSize)
     {
-        var knownDevices = _context.KnownDevices.ToList();
-        return _mapper.Map<List<KnownDeviceModel>>(knownDevices);
+        var knownDevices = await _context.KnownDevices
+            .Skip((page_number - 1) * page_size)
+            .Take(page_size)
+            .ToListAsync();
+        var totalCount = await _context.KnownDevices.CountAsync();
+        var devices = _mapper.Map<List<KnownDeviceModel>>(knownDevices);
+        return new PagedResult<KnownDeviceModel> { Data = devices, TotalCount = totalCount };
     }
 
-    public KnownDeviceModel GetById(long id)
-    {
-        var knownDevice = _context.KnownDevices.Find(id);
-        if (knownDevice == null) return null;
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
 
-        return _mapper.Map<KnownDeviceModel>(knownDevice);
+    public async Task<PagedResult<KnownDeviceModel>> Search(string query, int page_number = IKnownDeviceService.DefaultPageNumber, int page_size = IKnownDeviceService.DefaultPageSize)
+    {
+        var knownDevices = await _context.KnownDevices
+            .Where(x => x.DeviceName.Contains(query) || x.Vendor.Contains(query))
+            .Skip((page_number - 1) * page_size)
+            .Take(page_size)
+            .ToListAsync();
+
+        var totalCount = await _context.KnownDevices
+            .Where(x => x.DeviceName.Contains(query) || x.Vendor.Contains(query))
+            .CountAsync();
+
+        var devices = _mapper.Map<List<KnownDeviceModel>>(knownDevices);
+
+        return new PagedResult<KnownDeviceModel> { Data = devices, TotalCount = totalCount };
     }
 
-    public void Create(KnownDeviceModel model)
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
+
+    public async Task<PagedResult<KnownDeviceModel>> GetById(long id)
+    {
+        var knownDevice = await _context.KnownDevices.FindAsync(id);
+        var device = _mapper.Map<KnownDeviceModel>(knownDevice);
+        return new PagedResult<KnownDeviceModel> { Data = [device], TotalCount = 1 };
+    }
+
+    public async Task Create(KnownDeviceModel model)
     {
         var knownDevice = _mapper.Map<KnownDevice>(model);
         _context.KnownDevices.Add(knownDevice);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
-    public void Update(long id, KnownDeviceModel model)
+    public async Task Update(long id, KnownDeviceModel model)
     {
-        var knownDevice = _context.KnownDevices.Find(id);
+        var knownDevice = await _context.KnownDevices.FindAsync(id);
         if (knownDevice == null) return;
 
-        _mapper.Map(model, knownDevice);
-        _context.SaveChanges();
+        knownDevice = _mapper.Map(model, knownDevice);
+        _context.KnownDevices.Update(knownDevice);
+
+        await _context.SaveChangesAsync();
     }
 
-    public void Delete(long id)
+    public async Task Delete(long id)
     {
-        var knownDevice = _context.KnownDevices.Find(id);
+        var knownDevice = await _context.KnownDevices.FindAsync(id);
 
         if (knownDevice == null) return;
 
         _context.KnownDevices.Remove(knownDevice);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 }
