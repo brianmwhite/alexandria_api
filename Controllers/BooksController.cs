@@ -55,7 +55,9 @@ public class BooksController : ControllerBase
 
     public class TransferRequest
     {
-        public int Id { get; set; }
+        public long BookId { get; set; }
+        public long KnownDeviceId { get; set; }
+
         private string _format = "";
 
         public string Format
@@ -68,7 +70,7 @@ public class BooksController : ControllerBase
     [HttpPost("transfer")]
     public async Task<IActionResult> Transfer([FromBody] TransferRequest request)
     {
-        await _bookService.TransferBookFile(request.Id, request.Format);
+        await _bookService.TransferBookFile(request.BookId, request.Format, request.KnownDeviceId);
         return Ok();
     }
 }

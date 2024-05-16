@@ -9,11 +9,11 @@ public interface IBookRepository
     const int DefaultPageNumber = 1;
     const int DefaultPageSize = 10;
     Task<PagedResult<BookEntity>> GetAll(int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<PagedResult<BookEntity>> GetBySeriesId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<PagedResult<BookEntity>> GetByAuthorId(int id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<PagedResult<BookEntity>> GetById(int id);
+    Task<PagedResult<BookEntity>> GetBySeriesId(long id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetByAuthorId(long id, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
+    Task<PagedResult<BookEntity>> GetById(long id);
     Task<PagedResult<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
-    Task<string?> GetBookFilePath(int id, string format);
+    Task<string?> GetBookFilePath(long id, string format);
 }
 
 public class BookRepository(BookDataContext context) : IBookRepository
@@ -123,7 +123,7 @@ public class BookRepository(BookDataContext context) : IBookRepository
         };
     }
 
-    public async Task<PagedResult<BookEntity>> GetById(int id)
+    public async Task<PagedResult<BookEntity>> GetById(long id)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_id_where_clause, "");
@@ -135,7 +135,7 @@ public class BookRepository(BookDataContext context) : IBookRepository
         };
     }
 
-    public async Task<string?> GetBookFilePath(int id, string format)
+    public async Task<string?> GetBookFilePath(long id, string format)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(format_query);
@@ -143,7 +143,7 @@ public class BookRepository(BookDataContext context) : IBookRepository
         return result;
     }
 
-    public async Task<PagedResult<BookEntity>> GetBySeriesId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> GetBySeriesId(long id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_series_id_where_clause, book_query_series_order_by_clause);
@@ -157,7 +157,7 @@ public class BookRepository(BookDataContext context) : IBookRepository
         };
     }
 
-    public async Task<PagedResult<BookEntity>> GetByAuthorId(int id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
+    public async Task<PagedResult<BookEntity>> GetByAuthorId(long id, int page_number = IBookRepository.DefaultPageNumber, int page_size = IBookRepository.DefaultPageSize)
     {
         using var connection = _context.CreateConnection();
         var sql = string.Format(book_query, book_query_author_id_where_clause, book_query_author_order_by_clause);
