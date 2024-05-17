@@ -9,6 +9,8 @@ services:
       - '5384:5384'
     volumes:
       - ./bookdata:/app/bookdata
+      - ./appdata:/app/appdata
+      - /media/usb:/app/usbdrive
     # network_mode: host
     environment:
       - ASPNETCORE_URLS=http://+:5384
