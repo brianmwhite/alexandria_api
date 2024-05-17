@@ -16,12 +16,14 @@ headers {
 
 body:json {
   {
-    "id": {{bookId}},
-    "format": "{{format}}"
+    "bookid": {{bookId}},
+    "format": "{{format}}",
+    "knowndeviceid": {{knownDevice}}
   }
 }
 
 vars:pre-request {
-  bookId: 879
+  bookId: 1573
   format: azw3
+  knownDevice: 2
 }
