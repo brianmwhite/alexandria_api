@@ -59,4 +59,11 @@ public class KnownDevicesController : ControllerBase
         await _knownDeviceService.Delete(id);
         return Ok();
     }
+
+    [HttpGet("detect")]
+    public async Task<IActionResult> DetectDevice()
+    {
+        var knownDevice = await _knownDeviceService.DetectDevice();
+        return Ok(knownDevice);
+    }
 }

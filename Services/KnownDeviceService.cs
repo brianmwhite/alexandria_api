@@ -16,16 +16,19 @@ public interface IKnownDeviceService
     Task Create(KnownDeviceModel model);
     Task Update(long id, KnownDeviceModel model);
     Task Delete(long id);
+    Task<KnownDeviceModel?> DetectDevice();
 }
 public class KnownDeviceService : IKnownDeviceService
 {
     private readonly AppDataContext _context;
     private readonly IMapper _mapper;
+    private readonly IFileService _fileService;
 
-    public KnownDeviceService(AppDataContext context, IMapper mapper)
+    public KnownDeviceService(AppDataContext context, IMapper mapper, IFileService fileService)
     {
         _context = context;
         _mapper = mapper;
+        _fileService = fileService;
     }
 
     public async Task<PagedResult<KnownDeviceModel>> GetAll(int page_number = IKnownDeviceService.DefaultPageNumber, int page_size = IKnownDeviceService.DefaultPageSize)
@@ -109,5 +112,29 @@ public class KnownDeviceService : IKnownDeviceService
 
         _context.KnownDevices.Remove(knownDevice);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<KnownDeviceModel?> DetectDevice()
+    {
+        var usbDevice = await _fileService.CheckUSBDeviceInformation();
+
+        if (usbDevice == null) return null;
+        if (usbDevice.First<USBDevice>() == null) return null;
+
+        var vendor = usbDevice.First<USBDevice>().Vendor ?? null;
+        var serial = usbDevice.First<USBDevice>().Serial ?? null;
+
+        if (vendor == null || serial == null) return null;
+
+        var knownDevice = await _context.KnownDevices
+            .Where(x => x.Vendor == vendor && x.SerialNumber == serial)
+            .FirstOrDefaultAsync();
+
+        if (knownDevice == null) return null;
+
+        var knownDeviceModel = _mapper.Map<KnownDeviceModel>(knownDevice);
+        knownDeviceModel.USBDeviceInfo = usbDevice.First<USBDevice>();
+
+        return knownDeviceModel;
     }
 }

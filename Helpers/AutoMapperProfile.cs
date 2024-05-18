@@ -40,11 +40,13 @@ public class AutoMapperProfile : Profile
 
         CreateMap<KnownDevice, KnownDeviceModel>()
             .ForMember(dest => dest.DeviceTypeId, opt => opt.MapFrom(src => src.DeviceType != null ? src.DeviceType.Id : (long?)null))
-            .ForMember(dest => dest.FormatList, opt => opt.Ignore());
+            .ForMember(dest => dest.FormatList, opt => opt.Ignore())
+            .ForMember(dest => dest.USBDeviceInfo, opt => opt.Ignore());
 
         CreateMap<KnownDeviceModel, KnownDevice>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.DeviceType, opt => opt.Ignore());
+
     }
 }
 

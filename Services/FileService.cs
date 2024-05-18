@@ -9,7 +9,7 @@ namespace alexandria.api.Services
         void CopyFile(string sourcePath, string destinationPath);
         IEnumerable<DirectoryListing> GetSubDirectories(string path);
         // this method will likely only work on a Linux system
-        IEnumerable<USBDevice> CheckUSBDeviceInformation();
+        Task<IEnumerable<USBDevice>> CheckUSBDeviceInformation();
     }
     public class DirectoryListing
     {
@@ -61,7 +61,7 @@ namespace alexandria.api.Services
         }
 
         // this method will likely only work on a Linux system
-        public IEnumerable<USBDevice> CheckUSBDeviceInformation()
+        public async Task<IEnumerable<USBDevice>> CheckUSBDeviceInformation()
         {
             // Example output from lsblk command:
             // lsblk --output vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse% --include 8 --json
@@ -85,7 +85,7 @@ namespace alexandria.api.Services
             var storageDevices = 8;
             var fieldsToDisplay = "vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse%";
 
-            var lsblkOutput = RunCommand($"lsblk --output {fieldsToDisplay} --include {storageDevices} --json");
+            var lsblkOutput = await RunCommand($"lsblk --output {fieldsToDisplay} --include {storageDevices} --json");
             var lsblkJson = JsonDocument.Parse(lsblkOutput);
             var blockDevices = lsblkJson.RootElement.GetProperty("blockdevices");
             foreach (var blockDevice in blockDevices.EnumerateArray())
@@ -110,7 +110,7 @@ namespace alexandria.api.Services
             return usbDevices;
         }
 
-        private static string RunCommand(string command)
+        private static async Task<string> RunCommand(string command)
         {
             var process = new Process
             {
@@ -125,8 +125,8 @@ namespace alexandria.api.Services
             };
 
             process.Start();
-            string output = process.StandardOutput.ReadToEnd();
-            process.WaitForExit();
+            string output = await process.StandardOutput.ReadToEndAsync();
+            await process.WaitForExitAsync();
 
             return output;
         }

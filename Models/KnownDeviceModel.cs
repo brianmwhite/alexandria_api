@@ -17,5 +17,6 @@ namespace alexandria.api.Models
             }
         }
         public long? DeviceTypeId { get; set; }
+        public USBDevice? USBDeviceInfo { get; set; }
     }
 }
