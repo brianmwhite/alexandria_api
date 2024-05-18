@@ -33,16 +33,18 @@ public class AutoMapperProfile : Profile
         CreateMap<BookEntity, BookModel>()
             .ForMember(dest => dest.AuthorList, opt => opt.MapFrom<AuthorsResolver>());
 
-        CreateMap<KnownDevice, KnownDeviceModel>();
-
-        CreateMap<KnownDeviceModel, KnownDevice>()
-            .ForMember(dest => dest.Id, opt => opt.Ignore());
-
         CreateMap<DeviceType, DeviceTypeModel>();
 
         CreateMap<DeviceTypeModel, DeviceType>()
             .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+        CreateMap<KnownDevice, KnownDeviceModel>()
+            .ForMember(dest => dest.DeviceTypeId, opt => opt.MapFrom(src => src.DeviceType != null ? src.DeviceType.Id : (long?)null))
+            .ForMember(dest => dest.FormatList, opt => opt.Ignore());
+
+        CreateMap<KnownDeviceModel, KnownDevice>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.DeviceType, opt => opt.Ignore());
     }
 }
 

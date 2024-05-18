@@ -8,5 +8,14 @@ namespace alexandria.api.Models
         public string? SavePathTemplate { get; set; }
         public string? Vendor { get; set; }
         public string? SerialNumber { get; set; }
+        public string? Formats { get; set; }
+        public List<string>? FormatList
+        {
+            get
+            {
+                return Formats?.Split(',').ToList();
+            }
+        }
+        public long? DeviceTypeId { get; set; }
     }
 }

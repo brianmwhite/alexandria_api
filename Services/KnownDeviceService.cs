@@ -72,6 +72,13 @@ public class KnownDeviceService : IKnownDeviceService
     public async Task Create(KnownDeviceModel model)
     {
         var knownDevice = _mapper.Map<KnownDevice>(model);
+
+        if (model.DeviceTypeId != null)
+        {
+            var deviceType = await _context.DeviceTypes.FindAsync(model.DeviceTypeId);
+            knownDevice.DeviceType = deviceType;
+        }
+
         _context.KnownDevices.Add(knownDevice);
         await _context.SaveChangesAsync();
     }
@@ -82,6 +89,13 @@ public class KnownDeviceService : IKnownDeviceService
         if (knownDevice == null) return;
 
         knownDevice = _mapper.Map(model, knownDevice);
+
+        if (model.DeviceTypeId != null)
+        {
+            var deviceType = await _context.DeviceTypes.FindAsync(model.DeviceTypeId);
+            knownDevice.DeviceType = deviceType;
+        }
+
         _context.KnownDevices.Update(knownDevice);
 
         await _context.SaveChangesAsync();

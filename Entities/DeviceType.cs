@@ -6,5 +6,6 @@ public class DeviceType
     public required string EbookDirectory { get; set; }
     public required string SavePathTemplate { get; set; }
     public required string Vendor { get; set; }
-    // public string? ProductId { get; set; }
+    public string? Formats { get; set; }
+    public ICollection<KnownDevice> KnownDevices { get; } = [];
 }

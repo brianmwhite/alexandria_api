@@ -1,7 +1,4 @@
 namespace alexandria.api.Entities;
-
-using System.Text.Json.Serialization;
-
 public class BookEntity
 {
     public long Id { get; set; }
