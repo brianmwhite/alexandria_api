@@ -1,12 +1,13 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build-env
 WORKDIR /app
 
-# Copy everything
+# Copy csproj and restore as distinct layers
+COPY alexandria_api.csproj ./
+RUN dotnet restore alexandria_api.csproj
+
+# Copy everything else and build
 COPY . ./
-# Restore as distinct layers
-RUN dotnet restore
-# Build and publish a release
-RUN dotnet publish -c Release -o out
+RUN dotnet publish alexandria_api.csproj -c Release -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
