@@ -10,6 +10,7 @@ namespace alexandria.api.Services
         IEnumerable<DirectoryListing> GetSubDirectories(string path);
         // this method will likely only work on a Linux system
         Task<IEnumerable<USBDevice>> CheckUSBDeviceInformation();
+        Task UnmountUSBDevice();
     }
     public class DirectoryListing
     {
@@ -18,6 +19,13 @@ namespace alexandria.api.Services
     }
     public class FileService : IFileService
     {
+        private readonly IConfiguration _configuration;
+
+        public FileService(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
         public void CopyFile(string sourcePath, string destinationPath)
         {
             if (Directory.Exists(destinationPath))
@@ -129,6 +137,13 @@ namespace alexandria.api.Services
             await process.WaitForExitAsync();
 
             return output;
+        }
+
+        // send pumount /media/usb0 command to unmount the device
+        public async Task UnmountUSBDevice()
+        {
+            var mountpoint = _configuration["DeviceMountDirectory"];
+            await RunCommand($"pumount {mountpoint}");
         }
     }
 }

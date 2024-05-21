@@ -11,10 +11,12 @@ public class KnownDevicesController : ControllerBase
     const int DefaultPageNumber = 1;
     const int DefaultPageSize = 10;
     private IKnownDeviceService _knownDeviceService;
+    private IFileService _fileService;
 
-    public KnownDevicesController(IKnownDeviceService knownDeviceService)
+    public KnownDevicesController(IKnownDeviceService knownDeviceService, IFileService fileService)
     {
         _knownDeviceService = knownDeviceService;
+        _fileService = fileService;
     }
 
     [HttpGet]
@@ -65,5 +67,13 @@ public class KnownDevicesController : ControllerBase
     {
         var knownDevice = await _knownDeviceService.DetectDevice();
         return Ok(knownDevice);
+    }
+
+    //post method to unmount the usbdrive
+    [HttpPost("unmount")]
+    public async Task<IActionResult> UnmountDevice()
+    {
+        await _fileService.UnmountUSBDevice();
+        return Ok();
     }
 }

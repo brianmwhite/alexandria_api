@@ -3,6 +3,7 @@ using alexandria.api.Models;
 using alexandria.api.Helpers;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace alexandria.api.Services;
 
@@ -16,7 +17,7 @@ public interface IKnownDeviceService
     Task Create(KnownDeviceModel model);
     Task Update(long id, KnownDeviceModel model);
     Task Delete(long id);
-    Task<KnownDeviceModel?> DetectDevice();
+    Task<DetectedDevice> DetectDevice();
 }
 public class KnownDeviceService : IKnownDeviceService
 {
@@ -114,27 +115,44 @@ public class KnownDeviceService : IKnownDeviceService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<KnownDeviceModel?> DetectDevice()
+    public async Task<DetectedDevice> DetectDevice()
     {
+        var detectedDevice = new DetectedDevice();
+
         var usbDevice = await _fileService.CheckUSBDeviceInformation();
 
-        if (usbDevice == null) return null;
-        if (usbDevice.First<USBDevice>() == null) return null;
+        if (usbDevice == null || !usbDevice.Any())
+        {
+            detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
+            return detectedDevice;
+        }
 
         var vendor = usbDevice.First<USBDevice>().Vendor ?? null;
         var serial = usbDevice.First<USBDevice>().Serial ?? null;
 
-        if (vendor == null || serial == null) return null;
+        if (vendor == null || serial == null)
+        {
+            detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
+            detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
+            return detectedDevice;
+        }
 
         var knownDevice = await _context.KnownDevices
             .Where(x => x.Vendor == vendor && x.SerialNumber == serial)
             .FirstOrDefaultAsync();
 
-        if (knownDevice == null) return null;
+        if (knownDevice == null)
+        {
+            detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
+            detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
+            return detectedDevice;
+        }
 
-        var knownDeviceModel = _mapper.Map<KnownDeviceModel>(knownDevice);
-        knownDeviceModel.USBDeviceInfo = usbDevice.First<USBDevice>();
+        detectedDevice.State = DetectedDevice.StateEnum.MATCHED;
 
-        return knownDeviceModel;
+        detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
+        detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
+
+        return detectedDevice;
     }
 }
