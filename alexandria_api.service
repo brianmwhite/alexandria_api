@@ -1,0 +1,16 @@
+[Unit]
+Description=Alexandria API
+
+[Service]
+WorkingDirectory=/var/www/api
+ExecStart=/usr/share/dotnet/dotnet /var/www/api/alexandria_api.dll
+Restart=always
+# Restart service after 10 seconds if the dotnet service crashes:
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=alexandria_api
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_NOLOGO=true
+
+[Install]
+WantedBy=multi-user.target
