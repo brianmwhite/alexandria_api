@@ -1,0 +1,17 @@
+meta {
+  name: Trigger USB Event Notification
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/usb/notify
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "state": "NOT_MATCHED"
+  }
+}

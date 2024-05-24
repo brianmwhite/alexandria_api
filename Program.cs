@@ -2,6 +2,7 @@
 using alexandria.api.Helpers;
 using alexandria.api.Repositories;
 using alexandria.api.Services;
+// using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(5384); });
@@ -9,6 +10,8 @@ builder.WebHost.ConfigureKestrel(serverOptions => { serverOptions.ListenAnyIP(53
 {
     var services = builder.Services;
     var env = builder.Environment;
+
+    // services.AddSignalR();
 
     services.AddSingleton<BookDataContext>();
     services.AddSingleton<AppDataContext>();
@@ -52,6 +55,8 @@ var app = builder.Build();
 
     // global error handler
     app.UseMiddleware<ErrorHandlerMiddleware>();
+
+    // app.MapHub<MessageHub>("/hubs/devices");
 
     app.MapControllers();
 }

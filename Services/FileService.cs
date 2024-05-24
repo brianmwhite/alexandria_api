@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Text.Json;
 using alexandria.api.Models;
+using System.Runtime.InteropServices;
+
 
 namespace alexandria.api.Services
 {
@@ -81,39 +83,43 @@ namespace alexandria.api.Services
             //    ]
             // }
             var usbDevices = new List<USBDevice>();
-
-            // LINUX ALLOCATED DEVICES
-            // http://mirrors.mit.edu/kernel/linux/docs/lanana/device-list/devices-2.6.txt
-            //   8 block	SCSI disk devices (0-15)
-            //   0 = /dev/sda		First SCSI disk whole disk
-            //   16 = /dev/sdb		Second SCSI disk whole disk
-            //   32 = /dev/sdc		Third SCSI disk whole disk
-            //     ...
-            // 240 = /dev/sdp		Sixteenth SCSI disk whole disk
-            var storageDevices = 8;
-            var fieldsToDisplay = "vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse%";
-
-            var lsblkOutput = await RunCommand($"lsblk --output {fieldsToDisplay} --include {storageDevices} --json");
-            var lsblkJson = JsonDocument.Parse(lsblkOutput);
-            var blockDevices = lsblkJson.RootElement.GetProperty("blockdevices");
-            foreach (var blockDevice in blockDevices.EnumerateArray())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                var usbDevice = new USBDevice
+
+
+                // LINUX ALLOCATED DEVICES
+                // http://mirrors.mit.edu/kernel/linux/docs/lanana/device-list/devices-2.6.txt
+                //   8 block	SCSI disk devices (0-15)
+                //   0 = /dev/sda		First SCSI disk whole disk
+                //   16 = /dev/sdb		Second SCSI disk whole disk
+                //   32 = /dev/sdc		Third SCSI disk whole disk
+                //     ...
+                // 240 = /dev/sdp		Sixteenth SCSI disk whole disk
+                var storageDevices = 8;
+                var fieldsToDisplay = "vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse%";
+
+                var lsblkOutput = await RunCommand($"lsblk --output {fieldsToDisplay} --include {storageDevices} --json");
+                var lsblkJson = JsonDocument.Parse(lsblkOutput);
+                var blockDevices = lsblkJson.RootElement.GetProperty("blockdevices");
+                foreach (var blockDevice in blockDevices.EnumerateArray())
                 {
-                    Vendor = blockDevice.TryGetProperty("vendor", out var vendor) ? vendor.GetString()?.Trim() : null,
-                    Model = blockDevice.TryGetProperty("model", out var model) ? model.GetString()?.Trim() : null,
-                    Serial = blockDevice.TryGetProperty("serial", out var serial) ? serial.GetString()?.Trim() : null,
-                    Name = blockDevice.TryGetProperty("name", out var name) ? name.GetString()?.Trim() : null,
-                    Path = blockDevice.TryGetProperty("path", out var path) ? path.GetString()?.Trim() : null,
-                    Label = blockDevice.TryGetProperty("label", out var label) ? label.GetString()?.Trim() : null,
-                    Mountpoint = blockDevice.TryGetProperty("mountpoint", out var mountpoint) ? mountpoint.GetString()?.Trim() : null,
-                    UUID = blockDevice.TryGetProperty("uuid", out var uuid) ? uuid.GetString()?.Trim() : null,
-                    FSavail = blockDevice.TryGetProperty("fsavail", out var fsavail) ? fsavail.GetString()?.Trim() : null,
-                    FSsize = blockDevice.TryGetProperty("fssize", out var fssize) ? fssize.GetString()?.Trim() : null,
-                    FSused = blockDevice.TryGetProperty("fsused", out var fsused) ? fsused.GetString()?.Trim() : null,
-                    FSuse = blockDevice.TryGetProperty("fsuse%", out var fsuse) ? fsuse.GetString()?.Trim() : null
-                };
-                usbDevices.Add(usbDevice);
+                    var usbDevice = new USBDevice
+                    {
+                        Vendor = blockDevice.TryGetProperty("vendor", out var vendor) ? vendor.GetString()?.Trim() : null,
+                        Model = blockDevice.TryGetProperty("model", out var model) ? model.GetString()?.Trim() : null,
+                        Serial = blockDevice.TryGetProperty("serial", out var serial) ? serial.GetString()?.Trim() : null,
+                        Name = blockDevice.TryGetProperty("name", out var name) ? name.GetString()?.Trim() : null,
+                        Path = blockDevice.TryGetProperty("path", out var path) ? path.GetString()?.Trim() : null,
+                        Label = blockDevice.TryGetProperty("label", out var label) ? label.GetString()?.Trim() : null,
+                        Mountpoint = blockDevice.TryGetProperty("mountpoint", out var mountpoint) ? mountpoint.GetString()?.Trim() : null,
+                        UUID = blockDevice.TryGetProperty("uuid", out var uuid) ? uuid.GetString()?.Trim() : null,
+                        FSavail = blockDevice.TryGetProperty("fsavail", out var fsavail) ? fsavail.GetString()?.Trim() : null,
+                        FSsize = blockDevice.TryGetProperty("fssize", out var fssize) ? fssize.GetString()?.Trim() : null,
+                        FSused = blockDevice.TryGetProperty("fsused", out var fsused) ? fsused.GetString()?.Trim() : null,
+                        FSuse = blockDevice.TryGetProperty("fsuse%", out var fsuse) ? fsuse.GetString()?.Trim() : null
+                    };
+                    usbDevices.Add(usbDevice);
+                }
             }
             return usbDevices;
         }
