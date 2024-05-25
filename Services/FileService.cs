@@ -97,7 +97,7 @@ namespace alexandria.api.Services
                 // 240 = /dev/sdp		Sixteenth SCSI disk whole disk
                 var storageDevices = 8;
                 var fieldsToDisplay = "vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse%";
-
+                // lsblk --output vendor,model,serial,name,path,label,mountpoint,uuid,fsavail,fssize,fsused,fsuse% --include 8 --json
                 var lsblkOutput = await RunCommand($"lsblk --output {fieldsToDisplay} --include {storageDevices} --json");
                 var lsblkJson = JsonDocument.Parse(lsblkOutput);
                 var blockDevices = lsblkJson.RootElement.GetProperty("blockdevices");
