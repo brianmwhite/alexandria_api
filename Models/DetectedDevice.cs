@@ -2,13 +2,21 @@ namespace alexandria.api.Models;
 
 public class DetectedDevice
 {
-    public enum StateEnum
+    public enum DeviceStateEnum
     {
-        NOT_DETECTED,
-        NOT_MATCHED,
-        MATCHED
+        NO_DEVICE_DETECTED,
+        MOUNTED,
+        NOT_MOUNTED,
     }
-    public StateEnum State { get; set; }
+    public enum MatchedStateEnum
+    {
+        NOT_MATCHED,
+        MATCHED_KNOWN,
+        MATCHED_TYPE,
+    }
+
+    public DeviceStateEnum DeviceState { get; set; }
+    public MatchedStateEnum MatchedState { get; set; }
     public KnownDeviceModel? KnownDevice { get; set; }
     public DeviceTypeModel? DeviceType { get; set; }
     public USBDevice? USBDeviceInfo { get; set; }

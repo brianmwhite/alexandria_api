@@ -119,12 +119,15 @@ public class KnownDeviceService : IKnownDeviceService
     {
         bool isMounted = false;
         bool isMatched = false;
+        bool isKnownType = false;
 
         var detectedDevice = new DetectedDevice
         {
-            State = DetectedDevice.StateEnum.NOT_DETECTED
+            DeviceState = DetectedDevice.DeviceStateEnum.NO_DEVICE_DETECTED,
+            MatchedState = DetectedDevice.MatchedStateEnum.NOT_MATCHED
         };
         KnownDevice? knownDevice = null;
+        DeviceType? deviceType = null;
 
         var usbDevicesList = await _fileService.CheckUSBDeviceInformation();
         if (usbDevicesList != null && usbDevicesList.Any())
@@ -149,28 +152,59 @@ public class KnownDeviceService : IKnownDeviceService
                     isMatched = true;
                 }
             }
+            if (!isMatched && vendor != null)
+            {
+                deviceType = await _context.DeviceTypes
+                    .Where(x => x.Vendor == vendor)
+                    .FirstOrDefaultAsync();
+
+                if (deviceType != null)
+                {
+                    isKnownType = true;
+                }
+            }
 
             if (isMatched && isMounted)
             {
                 detectedDevice.USBDeviceInfo = usbDevice;
                 detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
-                detectedDevice.State = DetectedDevice.StateEnum.MATCHED;
+                if (knownDevice != null && knownDevice.DeviceType != null)
+                {
+                    detectedDevice.DeviceType = _mapper.Map<DeviceTypeModel>(knownDevice.DeviceType);
+                }
+                detectedDevice.DeviceState = DetectedDevice.DeviceStateEnum.MOUNTED;
+                detectedDevice.MatchedState = DetectedDevice.MatchedStateEnum.MATCHED_KNOWN;
             }
             else if (!isMatched && isMounted)
             {
                 detectedDevice.USBDeviceInfo = usbDevice;
-                detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
+                if (isKnownType)
+                {
+                    detectedDevice.DeviceType = _mapper.Map<DeviceTypeModel>(deviceType);
+                    detectedDevice.MatchedState = DetectedDevice.MatchedStateEnum.MATCHED_TYPE;
+                }
+                detectedDevice.DeviceState = DetectedDevice.DeviceStateEnum.MOUNTED;
             }
             else if (isMatched && !isMounted)
             {
                 detectedDevice.USBDeviceInfo = usbDevice;
                 detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
-                detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
+                detectedDevice.MatchedState = DetectedDevice.MatchedStateEnum.MATCHED_KNOWN;
+                if (knownDevice != null && knownDevice.DeviceType != null)
+                {
+                    detectedDevice.DeviceType = _mapper.Map<DeviceTypeModel>(knownDevice.DeviceType);
+                }
+                detectedDevice.DeviceState = DetectedDevice.DeviceStateEnum.NOT_MOUNTED;
             }
             else if (!isMatched && !isMounted)
             {
                 detectedDevice.USBDeviceInfo = usbDevice;
-                detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
+                detectedDevice.DeviceState = DetectedDevice.DeviceStateEnum.NOT_MOUNTED;
+                if (isKnownType)
+                {
+                    detectedDevice.DeviceType = _mapper.Map<DeviceTypeModel>(deviceType);
+                    detectedDevice.MatchedState = DetectedDevice.MatchedStateEnum.MATCHED_TYPE;
+                }
             }
         }
 

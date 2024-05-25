@@ -23,7 +23,8 @@ public class USBController : ControllerBase
     }
     public class DeviceStateModel
     {
-        public string? State { get; set; }
+        public string? DeviceState { get; set; }
+        public string? MatchedState { get; set; }
     }
     // curl -X POST "http://HOST:PORT/usb/notify"
     [HttpPost("notify")]
@@ -31,20 +32,20 @@ public class USBController : ControllerBase
     {
         var detectedDevice = new DetectedDevice();
 
-        if (deviceState != null && deviceState.State != null)
+        if (deviceState != null && deviceState.DeviceState != null && deviceState.MatchedState != null)
         {
-            if (deviceState.State == "MATCHED")
+            detectedDevice.DeviceState = deviceState.DeviceState switch
             {
-                detectedDevice.State = DetectedDevice.StateEnum.MATCHED;
-            }
-            else if (deviceState.State == "NOT_MATCHED")
+                "MOUNTED" => DetectedDevice.DeviceStateEnum.MOUNTED,
+                "NOT_MOUNTED" => DetectedDevice.DeviceStateEnum.NOT_MOUNTED,
+                _ => DetectedDevice.DeviceStateEnum.NO_DEVICE_DETECTED,
+            };
+            detectedDevice.MatchedState = deviceState.MatchedState switch
             {
-                detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
-            }
-            else
-            {
-                detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
-            }
+                "MATCHED_KNOWN" => DetectedDevice.MatchedStateEnum.MATCHED_KNOWN,
+                "MATCHED_TYPE" => DetectedDevice.MatchedStateEnum.MATCHED_TYPE,
+                _ => DetectedDevice.MatchedStateEnum.NOT_MATCHED,
+            };
         }
         else
         {
