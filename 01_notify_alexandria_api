@@ -1,0 +1,6 @@
+#!/bin/sh
+# copy to /etc/usbmount/mount.d
+# copy to /etc/usbmount/umount.d
+# chmod +x 01_notify_alexandria_api
+# https://github.com/rbrito/usbmount?tab=readme-ov-file#hook-scripts
+curl -X POST "http://localhost:5384/usb/notify"
