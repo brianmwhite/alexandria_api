@@ -117,41 +117,62 @@ public class KnownDeviceService : IKnownDeviceService
 
     public async Task<DetectedDevice> DetectDevice()
     {
-        var detectedDevice = new DetectedDevice();
+        bool isMounted = false;
+        bool isMatched = false;
 
-        var usbDevice = await _fileService.CheckUSBDeviceInformation();
-
-        if (usbDevice == null || !usbDevice.Any())
+        var detectedDevice = new DetectedDevice
         {
-            detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
-            return detectedDevice;
-        }
+            State = DetectedDevice.StateEnum.NOT_DETECTED
+        };
+        KnownDevice? knownDevice = null;
 
-        var vendor = usbDevice.First<USBDevice>().Vendor ?? null;
-        var serial = usbDevice.First<USBDevice>().Serial ?? null;
-
-        if (vendor == null || serial == null)
+        var usbDevicesList = await _fileService.CheckUSBDeviceInformation();
+        if (usbDevicesList != null && usbDevicesList.Any())
         {
-            detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
-            detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
-            return detectedDevice;
+            var usbDevice = usbDevicesList.First<USBDevice>();
+            if (usbDevice.Mountpoint != null)
+            {
+                isMounted = true;
+            }
+
+            var vendor = usbDevice.Vendor ?? null;
+            var serial = usbDevice.Serial ?? null;
+
+            if (vendor != null && serial != null)
+            {
+                knownDevice = await _context.KnownDevices
+                    .Where(x => x.Vendor == vendor && x.SerialNumber == serial)
+                    .FirstOrDefaultAsync();
+
+                if (knownDevice != null)
+                {
+                    isMatched = true;
+                }
+            }
+
+            if (isMatched && isMounted)
+            {
+                detectedDevice.USBDeviceInfo = usbDevice;
+                detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
+                detectedDevice.State = DetectedDevice.StateEnum.MATCHED;
+            }
+            else if (!isMatched && isMounted)
+            {
+                detectedDevice.USBDeviceInfo = usbDevice;
+                detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
+            }
+            else if (isMatched && !isMounted)
+            {
+                detectedDevice.USBDeviceInfo = usbDevice;
+                detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
+                detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
+            }
+            else if (!isMatched && !isMounted)
+            {
+                detectedDevice.USBDeviceInfo = usbDevice;
+                detectedDevice.State = DetectedDevice.StateEnum.NOT_DETECTED;
+            }
         }
-
-        var knownDevice = await _context.KnownDevices
-            .Where(x => x.Vendor == vendor && x.SerialNumber == serial)
-            .FirstOrDefaultAsync();
-
-        if (knownDevice == null)
-        {
-            detectedDevice.State = DetectedDevice.StateEnum.NOT_MATCHED;
-            detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
-            return detectedDevice;
-        }
-
-        detectedDevice.State = DetectedDevice.StateEnum.MATCHED;
-
-        detectedDevice.KnownDevice = _mapper.Map<KnownDeviceModel>(knownDevice);
-        detectedDevice.USBDeviceInfo = usbDevice.First<USBDevice>();
 
         return detectedDevice;
     }
