@@ -17,6 +17,7 @@ public class DetectedDevice
 
     public DeviceStateEnum DeviceState { get; set; }
     public MatchedStateEnum MatchedState { get; set; }
+
     public KnownDeviceModel? KnownDevice { get; set; }
     public DeviceTypeModel? DeviceType { get; set; }
     public USBDevice? USBDeviceInfo { get; set; }

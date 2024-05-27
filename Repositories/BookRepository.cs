@@ -3,6 +3,9 @@ namespace alexandria.api.Repositories;
 using Dapper;
 using alexandria.api.Entities;
 using alexandria.api.Helpers;
+using System.Text;
+using System.Text.RegularExpressions;
+using alexandria.api.Models;
 
 public interface IBookRepository
 {
@@ -14,6 +17,7 @@ public interface IBookRepository
     Task<PagedResult<BookEntity>> GetById(long id);
     Task<PagedResult<BookEntity>> Search(string query, int page_number = DefaultPageNumber, int page_size = DefaultPageSize);
     Task<string?> GetBookFilePath(long id, string format);
+    Task<IEnumerable<BookFormatModel>> GetBooksByFormat(List<long> bookIds, List<string> formats);
 }
 
 public class BookRepository(BookDataContext context) : IBookRepository
@@ -183,5 +187,82 @@ public class BookRepository(BookDataContext context) : IBookRepository
             Data = data,
             TotalCount = total_rows
         };
+    }
+
+    private string GenerateCaseStatement(List<string> formats)
+    {
+        var caseStatement = new StringBuilder("CASE format ");
+
+        var regex = new Regex("^[a-zA-Z0-9]*$");
+
+        for (int i = 0; i < formats.Count; i++)
+        {
+            if (regex.IsMatch(formats[i]))
+            {
+                caseStatement.AppendLine($"WHEN '{formats[i]}' THEN {i + 1}");
+            }
+            else
+            {
+                throw new ArgumentException($"Format {formats[i]} contains invalid characters. Only letters and numbers are allowed.");
+            }
+        }
+
+        caseStatement.AppendLine("ELSE 9999 END AS priority");
+
+        return caseStatement.ToString();
+    }
+
+    private string GenerateGetBookFormatQuery(List<long> bookIds, List<string> formats)
+    {
+        var caseStatement = GenerateCaseStatement(formats);
+
+        var bookIdsParameter = string.Join(",", bookIds.Select((id, index) => $"@bookId{index}"));
+
+        var query = $@"
+        WITH format_priority AS (
+        SELECT 
+            book,
+            format,
+            name,
+            {caseStatement}
+        FROM DATA
+        WHERE book IN ({bookIdsParameter})
+        ),
+        min_priority AS (
+            SELECT book, MIN(priority) as min_priority
+            FROM format_priority
+            GROUP BY book
+        )
+        SELECT 
+            bi.id as Id,
+            bi.title as Title,
+            bi.author_sort as Authors,
+            CASE
+                WHEN priority = 9999 THEN 0
+                ELSE 1
+            END AS SupportedFormat,
+            bi.path || '/' || fp.name || '.' || LOWER(fp.format) as BookFilePath
+        FROM books AS bi
+        JOIN format_priority AS fp ON bi.id = fp.book
+        JOIN min_priority AS mp ON bi.id = mp.book AND fp.priority = mp.min_priority
+        GROUP BY Id";
+
+        return query;
+    }
+    public async Task<IEnumerable<BookFormatModel>> GetBooksByFormat(List<long> bookIds, List<string> formats)
+    {
+        var query = GenerateGetBookFormatQuery(bookIds, formats);
+
+        var parameters = new DynamicParameters();
+
+        for (int i = 0; i < bookIds.Count; i++)
+        {
+            parameters.Add($"@bookId{i}", bookIds[i]);
+        }
+
+        using var connection = _context.CreateConnection();
+        var data = await connection.QueryAsync<BookFormatModel>(query, parameters);
+
+        return data;
     }
 }

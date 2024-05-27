@@ -8,7 +8,7 @@ namespace alexandria.api.Services
 {
     public interface IFileService
     {
-        void CopyFile(string sourcePath, string destinationPath);
+        void CopyFile(string sourcePath, string destinationPath, string filename);
         IEnumerable<DirectoryListing> GetSubDirectories(string path);
         // this method will likely only work on a Linux system
         Task<IEnumerable<USBDevice>> CheckUSBDeviceInformation();
@@ -28,13 +28,12 @@ namespace alexandria.api.Services
             _configuration = configuration;
         }
 
-        public void CopyFile(string sourcePath, string destinationPath)
+        public void CopyFile(string sourcePath, string destinationPath, string filename)
         {
             if (Directory.Exists(destinationPath))
             {
                 if (File.Exists(sourcePath))
                 {
-                    var filename = Path.GetFileName(sourcePath);
                     var destinationFilePath = Path.Combine(destinationPath, filename);
                     if (!File.Exists(destinationFilePath))
                     {

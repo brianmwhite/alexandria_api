@@ -7,4 +7,5 @@ public class DeviceTypeModel
     public string? EbookDirectory { get; set; }
     public string? SavePathTemplate { get; set; }
     public string? Vendor { get; set; }
+    public string? Formats { get; set; }
 }

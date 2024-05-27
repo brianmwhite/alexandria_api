@@ -55,22 +55,15 @@ public class BooksController : ControllerBase
 
     public class TransferRequest
     {
-        public long BookId { get; set; }
-        public long KnownDeviceId { get; set; }
-
-        private string _format = "";
-
-        public string Format
-        {
-            get { return _format; }
-            set { _format = value?.ToUpper() ?? string.Empty; }
-        }
+        public required List<long> BookIds { get; set; }
+        public required long KnownDeviceId { get; set; }
     }
 
     [HttpPost("transfer")]
     public async Task<IActionResult> Transfer([FromBody] TransferRequest request)
     {
-        await _bookService.TransferBookFile(request.BookId, request.Format, request.KnownDeviceId);
-        return Ok();
+        await _bookService.TransferBookFiles(request.BookIds, request.KnownDeviceId);
+        return Ok(new { message = "Books successfully transferred." });
     }
+
 }
